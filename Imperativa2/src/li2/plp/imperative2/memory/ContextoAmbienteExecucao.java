@@ -10,8 +10,7 @@ import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
 
 public class ContextoAmbienteExecucao extends Contexto<Valor> {
 
-	public void changeValor(Id idArg, Valor valorId)
-			throws VariavelNaoDeclaradaException {
+	public void changeValor(Id idArg, Valor valorId) throws VariavelNaoDeclaradaException {
 		Object result = null;
 		Stack<HashMap<Id, Valor>> auxStack = new Stack<HashMap<Id, Valor>>();
 		Stack<HashMap<Id, Valor>> stack = this.getPilha();
