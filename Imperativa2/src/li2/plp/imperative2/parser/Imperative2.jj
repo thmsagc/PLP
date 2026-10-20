@@ -63,7 +63,7 @@ public class Imp2Parser {
             Programa programa = parser.Input();
             System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Imperativa2 program parsed successfully.");
             
-            if(programa.checaTipo(new ContextoCompilacaoImperativa(entrada))) {
+            if(programa.checaTipo(new ContextoCompilacaoImperativa2(entrada))) {
                 ListaValor saida = programa.executar(new ContextoExecucaoImperativa2(entrada));
                 System.out.println(saida);
             }
