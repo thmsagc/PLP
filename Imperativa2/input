@@ -1,9 +1,3 @@
-{ 
-   var a  =  1 ,
-   proc incA (int z)  {
-     a := a + z
-   };
-   call incA(3);
-   call incA(5);
-   write(a)
-}
+env x : int = 3;
+(with x = 10 do write($x));
+write($x)
