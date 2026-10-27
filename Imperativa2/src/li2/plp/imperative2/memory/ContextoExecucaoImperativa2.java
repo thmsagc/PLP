@@ -1,6 +1,7 @@
 package li2.plp.imperative2.memory;
 
 import li2.plp.expressions2.expression.Id;
+import li2.plp.expressions2.expression.Valor;
 import li2.plp.expressions2.memory.Contexto;
 import li2.plp.expressions2.memory.VariavelJaDeclaradaException;
 import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
@@ -18,11 +19,18 @@ public class ContextoExecucaoImperativa2 extends ContextoExecucaoImperativa
 	private Contexto<DefProcedimento> contextoProcedimentos;
 
 	/**
+	 * Contexto separado para as variáveis de ambiente.
+	 */
+	private ContextoAmbienteExecucao contextoAmbiente;
+
+	/**
 	 * Construtor da classe.
 	 */
 	public ContextoExecucaoImperativa2(ListaValor entrada) {
 		super(entrada);
 		contextoProcedimentos = new Contexto<DefProcedimento>();
+		contextoAmbiente = new ContextoAmbienteExecucao();
+		contextoAmbiente.incrementa();
 	}
 
 	@Override
@@ -68,5 +76,28 @@ public class ContextoExecucaoImperativa2 extends ContextoExecucaoImperativa
 			throw new ProcedimentoNaoDeclaradoException(idArg);
 		}
 
+	}
+
+	public void incrementaAmbiente() {
+		this.contextoAmbiente.incrementa();
+	}
+
+	public void restauraAmbiente() {
+		this.contextoAmbiente.restaura();
+	}
+
+	public void mapAmbiente(Id idArg, Valor valorId)
+			throws VariavelJaDeclaradaException {
+		this.contextoAmbiente.map(idArg, valorId);
+	}
+
+	public Valor getAmbiente(Id idArg)
+			throws VariavelNaoDeclaradaException {
+		return this.contextoAmbiente.get(idArg);
+	}
+
+	public void changeAmbiente(Id idArg, Valor valorId)
+			throws VariavelNaoDeclaradaException {
+		this.contextoAmbiente.changeValor(idArg, valorId);
 	}
 }

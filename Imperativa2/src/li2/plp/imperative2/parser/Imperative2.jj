@@ -10,11 +10,13 @@ package li2.plp.imperative2.parser;
 import li2.plp.expressions1.util.*;
 import li2.plp.expressions2.expression.*;
 import li2.plp.imperative1.command.*;
+import li2.plp.imperative1.command.IO;
 import li2.plp.imperative1.declaration.*;
 import li2.plp.imperative1.memory.*;
 import li2.plp.imperative2.*;
 import li2.plp.imperative2.command.*;
 import li2.plp.imperative2.declaration.*;
+import li2.plp.imperative2.expression.*;
 import li2.plp.imperative2.memory.*;
 import java.util.*;
 
@@ -63,7 +65,7 @@ public class Imp2Parser {
             Programa programa = parser.Input();
             System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Imperativa2 program parsed successfully.");
             
-            if(programa.checaTipo(new ContextoCompilacaoImperativa(entrada))) {
+            if(programa.checaTipo(new ContextoCompilacaoImperativa2(entrada))) {
                 ListaValor saida = programa.executar(new ContextoExecucaoImperativa2(entrada));
                 System.out.println(saida);
             }
