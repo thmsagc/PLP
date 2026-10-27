@@ -132,6 +132,8 @@ TOKEN : /* TOKENS DE IMPERATIVA 2 */
 {
   < PROC: "proc" >
 | < CALL: "call" >
+| < ENV: "env" >
+| < WITH: "with" >
 }
 
 TOKEN : /* TOKENS DOS POSS�VEIS TIPOS */
@@ -176,7 +178,6 @@ TOKEN : /* IDENTIFIERS */
 |
   < #LETTER:
       [
-       "\u0024",
        "\u0041"-"\u005a",
        "\u005f",
        "\u0061"-"\u007a",
@@ -224,6 +225,7 @@ TOKEN : /* SEPARATORS */
 | < SEMICOLON: ";" >
 | < COMMA: "," >
 | < DOT: "." >
+| < DOLLAR: "$" >
 }
 
 TOKEN : /* OPERATORS */
@@ -267,9 +269,19 @@ Programa Input() :
 Programa PPrograma() :
 {
 	Comando retorno;
+	Declaracao declaracaoAmbiente;
 }
 {
-	retorno = PComando()
+	(
+		LOOKAHEAD(<ENV>)
+		declaracaoAmbiente = PDeclaracaoAmbienteComposta() <SEMICOLON>
+		retorno = PComando()
+		{
+			retorno = new ComandoDeclaracao(declaracaoAmbiente, retorno);
+		}
+		|
+		retorno = PComando()
+	)
 	{
 		return new Programa(retorno);
 	}
@@ -484,12 +496,24 @@ Expressao PExpPrimaria() :
 }
 {
 	(  
-	    retorno = PId()
+	    retorno = PExpVariavelAmbiente()
+	  | retorno = PId()
 	  | retorno = PValor() 
 	  | <LPAREN> retorno = PExpressao() <RPAREN>
 	)
 	{
 		return retorno; 
+	}
+}
+
+ExpVariavelAmbiente PExpVariavelAmbiente() :
+{
+	Id id;
+}
+{
+	<DOLLAR> id = PId()
+	{
+		return new ExpVariavelAmbiente(id);
 	}
 }
 
@@ -644,9 +668,23 @@ Comando PComandoSimples() :
       | retorno = PIO()
       | <LPAREN> retorno = PComando() <RPAREN>
       | retorno = PChamadaProcedimento()
+      | retorno = PComandoWith()
    	)
     {
         return retorno;
+    }
+}
+
+ComandoWith PComandoWith() :
+{
+    Id id;
+    Expressao exp;
+    Comando comando;
+}
+{
+    <WITH> id = PId() <ASSIGN> exp = PExpressao() <DO> comando = PComando()
+    {
+		return new ComandoWith(id, exp, comando);
     }
 }
 
@@ -692,6 +730,21 @@ Declaracao PDeclaracao():
 		  
 	)
 	{return retorno;}
+}
+
+Declaracao PDeclaracaoAmbienteComposta():
+{
+	Declaracao d1;
+	Declaracao d2;
+}
+{
+	d1 = PDeclaracaoVariavelAmbiente()
+	(
+		<COMMA> d2 = PDeclaracaoAmbienteComposta()
+		{return new DeclaracaoComposta(d1, d2);}
+		|
+		{return d1;}
+	)
 }
 
 DeclaracaoComposta PDeclaracaoComposta():
@@ -811,5 +864,18 @@ DeclaracaoVariavel PDeclaracaoVariavel() :
 	   	{retorno = new DeclaracaoVariavel(id, exp);}
 	{
 		return retorno;
+	}
+}
+
+DeclaracaoVariavelAmbiente PDeclaracaoVariavelAmbiente() :
+{
+	Id id;
+	Tipo tipo;
+	Expressao exp;
+}
+{
+	<ENV> id = PId() <COLON> tipo = PTipo() <ASSIGN> exp = PExpressao()
+	{
+		return new DeclaracaoVariavelAmbiente(id, tipo, exp);
 	}
 }
