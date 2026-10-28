@@ -93,69 +93,69 @@ Os parênteses em volta do `with` são necessários pelo mesmo motivo que já s�
 
 ## Sintaxe abstrata
 
-Abaixo está a BNF da LI2 já com as extensões. A notação é a mesma usada na página da disciplina, em que cada não terminal corresponde a uma classe do interpretador. As produções novas e as alternativas novas estão marcadas com o comentário `(novo)`.
+Abaixo está a BNF da LI2 já com as extensões. A notação é a mesma usada na página da disciplina, em que cada não terminal corresponde a uma classe do interpretador. As produções novas e as alternativas novas estão marcadas com o comentário `(novo)`. Cada não terminal é um link para a classe que o implementa; `"write"` e `"read"` levam às classes `Write` e `Read`, e o `";"` da sequência leva a `SequenciaComando`.
 
-```
-Programa                        ::= [ ListaDeclaracaoVariavelAmbiente ";" ] Comando  (novo)
+<pre>
+<a href="Imperativa2/src/li2/plp/imperative2/Programa.java">Programa</a>                        ::= [ <a href="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoVariavelAmbiente.java">ListaDeclaracaoVariavelAmbiente</a> ";" ] <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a>  (novo)
 
-ListaDeclaracaoVariavelAmbiente ::= DeclaracaoVariavelAmbiente                     (novo)
-                                  | DeclaracaoVariavelAmbiente ","
-                                    ListaDeclaracaoVariavelAmbiente
-DeclaracaoVariavelAmbiente      ::= "env" Id ":" Tipo "=" Expressao                (novo)
+<a href="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoVariavelAmbiente.java">ListaDeclaracaoVariavelAmbiente</a> ::= <a href="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java">DeclaracaoVariavelAmbiente</a>                     (novo)
+                                  | <a href="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java">DeclaracaoVariavelAmbiente</a> ","
+                                    <a href="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoVariavelAmbiente.java">ListaDeclaracaoVariavelAmbiente</a>
+<a href="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java">DeclaracaoVariavelAmbiente</a>      ::= "env" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> ":" <a href="Imperativa2/src/li2/plp/expressions1/util/Tipo.java">Tipo</a> "=" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>                (novo)
 
-Comando                         ::= Atribuicao
-                                  | AtribuicaoAmbiente                             (novo)
-                                  | ComandoDeclaracao
-                                  | ComandoWith                                    (novo)
-                                  | While
-                                  | IfThenElse
-                                  | IO
-                                  | Skip
-                                  | ChamadaProcedimento
-                                  | Comando ";" Comando
+<a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a>                         ::= <a href="Imperativa2/src/li2/plp/imperative1/command/Atribuicao.java">Atribuicao</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative2/command/AtribuicaoAmbiente.java">AtribuicaoAmbiente</a>                             (novo)
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/ComandoDeclaracao.java">ComandoDeclaracao</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative2/command/ComandoWith.java">ComandoWith</a>                                    (novo)
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/While.java">While</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/IfThenElse.java">IfThenElse</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/IO.java">IO</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/Skip.java">Skip</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative2/command/ChamadaProcedimento.java">ChamadaProcedimento</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a> <a href="Imperativa2/src/li2/plp/imperative1/command/SequenciaComando.java">";"</a> <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a>
 
-Skip                            ::=
-Atribuicao                      ::= Id ":=" Expressao
-AtribuicaoAmbiente              ::= "$" Id ":=" Expressao                          (novo)
-ComandoWith                     ::= "with" Id "=" Expressao "do" Comando           (novo)
-While                           ::= "while" Expressao "do" Comando
-IfThenElse                      ::= "if" Expressao "then" Comando "else" Comando
-IO                              ::= "write" "(" Expressao ")"
-                                  | "read" "(" Id ")"
-ChamadaProcedimento             ::= "call" Id "(" [ ListaExpressao ] ")"
-ListaExpressao                  ::= Expressao
-                                  | Expressao "," ListaExpressao
+<a href="Imperativa2/src/li2/plp/imperative1/command/Skip.java">Skip</a>                            ::=
+<a href="Imperativa2/src/li2/plp/imperative1/command/Atribuicao.java">Atribuicao</a>                      ::= <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> ":=" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+<a href="Imperativa2/src/li2/plp/imperative2/command/AtribuicaoAmbiente.java">AtribuicaoAmbiente</a>              ::= "$" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> ":=" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>                          (novo)
+<a href="Imperativa2/src/li2/plp/imperative2/command/ComandoWith.java">ComandoWith</a>                     ::= "with" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> "=" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "do" <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a>           (novo)
+<a href="Imperativa2/src/li2/plp/imperative1/command/While.java">While</a>                           ::= "while" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "do" <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a>
+<a href="Imperativa2/src/li2/plp/imperative1/command/IfThenElse.java">IfThenElse</a>                      ::= "if" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "then" <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a> "else" <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a>
+<a href="Imperativa2/src/li2/plp/imperative1/command/IO.java">IO</a>                              ::= <a href="Imperativa2/src/li2/plp/imperative1/command/Write.java">"write"</a> "(" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> ")"
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/command/Read.java">"read"</a> "(" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> ")"
+<a href="Imperativa2/src/li2/plp/imperative2/command/ChamadaProcedimento.java">ChamadaProcedimento</a>             ::= "call" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> "(" [ <a href="Imperativa2/src/li2/plp/imperative2/command/ListaExpressao.java">ListaExpressao</a> ] ")"
+<a href="Imperativa2/src/li2/plp/imperative2/command/ListaExpressao.java">ListaExpressao</a>                  ::= <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "," <a href="Imperativa2/src/li2/plp/imperative2/command/ListaExpressao.java">ListaExpressao</a>
 
-ComandoDeclaracao               ::= "{" Declaracao ";" Comando "}"
-Declaracao                      ::= DeclaracaoVariavel
-                                  | DeclaracaoProcedimento
-                                  | DeclaracaoComposta
-DeclaracaoComposta              ::= Declaracao "," Declaracao
-DeclaracaoVariavel              ::= "var" Id "=" Expressao
-DeclaracaoProcedimento          ::= "proc" Id "(" [ ListaDeclaracaoParametro ] ")"
-                                           "{" Comando "}"
-ListaDeclaracaoParametro        ::= Tipo Id
-                                  | Tipo Id "," ListaDeclaracaoParametro
-Tipo                            ::= "int" | "boolean" | "string"
+<a href="Imperativa2/src/li2/plp/imperative1/command/ComandoDeclaracao.java">ComandoDeclaracao</a>               ::= "{" <a href="Imperativa2/src/li2/plp/imperative1/declaration/Declaracao.java">Declaracao</a> ";" <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a> "}"
+<a href="Imperativa2/src/li2/plp/imperative1/declaration/Declaracao.java">Declaracao</a>                      ::= <a href="Imperativa2/src/li2/plp/imperative1/declaration/DeclaracaoVariavel.java">DeclaracaoVariavel</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoProcedimento.java">DeclaracaoProcedimento</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative1/declaration/DeclaracaoComposta.java">DeclaracaoComposta</a>
+<a href="Imperativa2/src/li2/plp/imperative1/declaration/DeclaracaoComposta.java">DeclaracaoComposta</a>              ::= <a href="Imperativa2/src/li2/plp/imperative1/declaration/Declaracao.java">Declaracao</a> "," <a href="Imperativa2/src/li2/plp/imperative1/declaration/Declaracao.java">Declaracao</a>
+<a href="Imperativa2/src/li2/plp/imperative1/declaration/DeclaracaoVariavel.java">DeclaracaoVariavel</a>              ::= "var" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> "=" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+<a href="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoProcedimento.java">DeclaracaoProcedimento</a>          ::= "proc" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> "(" [ <a href="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoParametro.java">ListaDeclaracaoParametro</a> ] ")"
+                                           "{" <a href="Imperativa2/src/li2/plp/imperative1/command/Comando.java">Comando</a> "}"
+<a href="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoParametro.java">ListaDeclaracaoParametro</a>        ::= <a href="Imperativa2/src/li2/plp/expressions1/util/Tipo.java">Tipo</a> <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions1/util/Tipo.java">Tipo</a> <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> "," <a href="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoParametro.java">ListaDeclaracaoParametro</a>
+<a href="Imperativa2/src/li2/plp/expressions1/util/Tipo.java">Tipo</a>                            ::= "int" | "boolean" | "string"
 
-Expressao                       ::= Valor
-                                  | ExpUnaria
-                                  | ExpBinaria
-                                  | Id
-                                  | ExpVariavelAmbiente                            (novo)
-ExpVariavelAmbiente             ::= "$" Id                                         (novo)
-Valor                           ::= ValorConcreto
-ValorConcreto                   ::= ValorInteiro | ValorBooleano | ValorString
-ExpUnaria                       ::= "-" Expressao
-                                  | "not" Expressao
-                                  | "length" Expressao
-ExpBinaria                      ::= Expressao "+" Expressao
-                                  | Expressao "-" Expressao
-                                  | Expressao "and" Expressao
-                                  | Expressao "or" Expressao
-                                  | Expressao "==" Expressao
-                                  | Expressao "++" Expressao
-```
+<a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>                       ::= <a href="Imperativa2/src/li2/plp/expressions2/expression/Valor.java">Valor</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/ExpUnaria.java">ExpUnaria</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/ExpBinaria.java">ExpBinaria</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a>
+                                  | <a href="Imperativa2/src/li2/plp/imperative2/expression/ExpVariavelAmbiente.java">ExpVariavelAmbiente</a>                            (novo)
+<a href="Imperativa2/src/li2/plp/imperative2/expression/ExpVariavelAmbiente.java">ExpVariavelAmbiente</a>             ::= "$" <a href="Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a>                                         (novo)
+<a href="Imperativa2/src/li2/plp/expressions2/expression/Valor.java">Valor</a>                           ::= <a href="Imperativa2/src/li2/plp/expressions2/expression/ValorConcreto.java">ValorConcreto</a>
+<a href="Imperativa2/src/li2/plp/expressions2/expression/ValorConcreto.java">ValorConcreto</a>                   ::= <a href="Imperativa2/src/li2/plp/expressions2/expression/ValorInteiro.java">ValorInteiro</a> | <a href="Imperativa2/src/li2/plp/expressions2/expression/ValorBooleano.java">ValorBooleano</a> | <a href="Imperativa2/src/li2/plp/expressions2/expression/ValorString.java">ValorString</a>
+<a href="Imperativa2/src/li2/plp/expressions2/expression/ExpUnaria.java">ExpUnaria</a>                       ::= "-" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | "not" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | "length" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+<a href="Imperativa2/src/li2/plp/expressions2/expression/ExpBinaria.java">ExpBinaria</a>                      ::= <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "+" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "-" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "and" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "or" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "==" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+                                  | <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a> "++" <a href="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java">Expressao</a>
+</pre>
 
 Duas observações sobre essa gramática.
 
