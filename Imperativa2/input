@@ -1,3 +1,10 @@
-env x : int = 3;
-(with x = 10 do write($x));
-write($x)
+env tentativas : int = 3;
+{
+   proc conectar () {
+      write($tentativas)
+   };
+
+   call conectar();
+   (with tentativas = 10 do call conectar());
+   call conectar()
+}

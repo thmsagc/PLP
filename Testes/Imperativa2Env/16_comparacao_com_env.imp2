@@ -1,0 +1,17 @@
+// esperado: "pedido ok" "consultando tabela" "pedido ok" "pedido ok"
+// Mesmo programa do 15, com variavel de ambiente: so o proc log le o nivel,
+// os procedimentos do meio nao recebem nada, e o with desfaz a mudanca sozinho.
+env nivel : int = 1;
+{
+   proc log (string msg) {
+      if $nivel == 2 then write(msg) else skip
+   },
+   proc consultarTabela () { call log("consultando tabela") },
+   proc calcularFrete () { call consultarTabela() },
+   proc validar () { call calcularFrete() },
+   proc processarPedido () { call validar(); write("pedido ok") };
+
+   call processarPedido();
+   (with nivel = 2 do call processarPedido());
+   call processarPedido()
+}

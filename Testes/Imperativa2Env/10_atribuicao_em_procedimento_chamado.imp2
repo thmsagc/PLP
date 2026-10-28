@@ -1,0 +1,7 @@
+// esperado: 2 1
+env x : int = 1;
+{
+   proc decrementa () { $x := $x - 1 };
+   (with x = 3 do (call decrementa(); write($x)));
+   write($x)
+}

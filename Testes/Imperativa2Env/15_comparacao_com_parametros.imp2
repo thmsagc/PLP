@@ -1,0 +1,16 @@
+// esperado: "pedido ok" "consultando tabela" "pedido ok" "pedido ok"
+// Mesmo programa do 16, escrito so com a LI2 original: o nivel de log e
+// passado por parametro em toda a cadeia, embora so o proc log use o valor.
+{
+   proc log (int nivel, string msg) {
+      if nivel == 2 then write(msg) else skip
+   },
+   proc consultarTabela (int nivel) { call log(nivel, "consultando tabela") },
+   proc calcularFrete (int nivel) { call consultarTabela(nivel) },
+   proc validar (int nivel) { call calcularFrete(nivel) },
+   proc processarPedido (int nivel) { call validar(nivel); write("pedido ok") };
+
+   call processarPedido(1);
+   call processarPedido(2);
+   call processarPedido(1)
+}

@@ -4,16 +4,17 @@ import li2.plp.expressions1.util.Tipo;
 import li2.plp.expressions2.expression.Expressao;
 import li2.plp.expressions2.expression.Id;
 import li2.plp.expressions2.expression.Valor;
-import li2.plp.expressions2.memory.IdentificadorJaDeclaradoException;
-import li2.plp.expressions2.memory.IdentificadorNaoDeclaradoException;
-import li2.plp.imperative1.declaration.Declaracao;
-import li2.plp.imperative1.memory.AmbienteCompilacaoImperativa;
-import li2.plp.imperative1.memory.AmbienteExecucaoImperativa;
-import li2.plp.imperative1.memory.EntradaVaziaException;
+import li2.plp.expressions2.memory.VariavelJaDeclaradaException;
+import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
 import li2.plp.imperative2.memory.AmbienteCompilacaoImperativa2;
 import li2.plp.imperative2.memory.AmbienteExecucaoImperativa2;
 
-public class DeclaracaoVariavelAmbiente extends Declaracao {
+/**
+ * Declaracao <code>env id : Tipo = Expressao</code>. So aparece no inicio do
+ * programa (ver {@link li2.plp.imperative2.Programa}), por isso nao estende
+ * {@link li2.plp.imperative1.declaration.Declaracao}.
+ */
+public class DeclaracaoVariavelAmbiente {
 
 	private Id id;
 	private Tipo tipo;
@@ -25,29 +26,28 @@ public class DeclaracaoVariavelAmbiente extends Declaracao {
 		this.expressao = expressao;
 	}
 
-	@Override
-	public AmbienteExecucaoImperativa elabora(AmbienteExecucaoImperativa ambiente) 
-		throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
-		AmbienteExecucaoImperativa2 ambienteImperativa2 = (AmbienteExecucaoImperativa2) ambiente;
-		Valor valorInicial = expressao.avaliar(ambienteImperativa2);
-		ambienteImperativa2.mapAmbiente(id, valorInicial);
-		return ambienteImperativa2;
+	/**
+	 * Liga o id ao valor inicial no nivel da base da pilha de variaveis de
+	 * ambiente.
+	 */
+	public AmbienteExecucaoImperativa2 elabora(
+			AmbienteExecucaoImperativa2 ambiente)
+			throws VariavelJaDeclaradaException, VariavelNaoDeclaradaException {
+		Valor valorInicial = expressao.avaliar(ambiente);
+		ambiente.mapVariavelAmbiente(id, valorInicial);
+		return ambiente;
 	}
 
-	@Override
-	public boolean checaTipo(AmbienteCompilacaoImperativa ambiente) 
-			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
-		AmbienteCompilacaoImperativa2 ambienteImperativa2 = (AmbienteCompilacaoImperativa2) ambiente;
-
-		if (!expressao.checaTipo(ambienteImperativa2)) {
+	/**
+	 * O tipo do valor inicial deve ser igual ao tipo declarado.
+	 */
+	public boolean checaTipo(AmbienteCompilacaoImperativa2 ambiente)
+			throws VariavelJaDeclaradaException, VariavelNaoDeclaradaException {
+		if (!expressao.checaTipo(ambiente)
+				|| !tipo.eIgual(expressao.getTipo(ambiente))) {
 			return false;
 		}
-
-		if (!tipo.eIgual(expressao.getTipo(ambienteImperativa2))) {
-			return false;
-		}
-
-		ambienteImperativa2.mapAmbiente(id, tipo);
+		ambiente.mapVariavelAmbiente(id, tipo);
 		return true;
 	}
 
@@ -61,5 +61,10 @@ public class DeclaracaoVariavelAmbiente extends Declaracao {
 
 	public Expressao getExpressao() {
 		return expressao;
+	}
+
+	@Override
+	public String toString() {
+		return "env " + id + " : " + tipo.getNome() + " = " + expressao;
 	}
 }

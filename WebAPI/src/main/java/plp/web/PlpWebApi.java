@@ -191,7 +191,7 @@ public final class PlpWebApi {
     li2.plp.imperative1.memory.ListaValor entrada = obterListaEntradaImp2(entradaStr);
     plp.debug.imperativa2.AmbienteCompilacaoImperativaDebug ambienteDebug =
         new plp.debug.imperativa2.AmbienteCompilacaoImperativaDebug(
-            new li2.plp.imperative1.memory.ContextoCompilacaoImperativa(entrada));
+            new li2.plp.imperative2.memory.ContextoCompilacaoImperativa2(entrada));
     if (prog.checaTipo(ambienteDebug)) {
       compilationEnv = compilationEnvJson("imp2", ambienteDebug.getRecorder().getSnapshot());
       output = prog.executar(new ContextoExecucaoImperativa2(entrada)).toString();

@@ -1,0 +1,4 @@
+// esperado: 6 1
+env x : int = 1;
+(with x = 5 do ($x := $x + 1; write($x)));
+write($x)

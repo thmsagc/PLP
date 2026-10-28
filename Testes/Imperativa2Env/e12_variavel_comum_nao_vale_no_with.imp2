@@ -1,0 +1,2 @@
+// esperado: ERRO Variavel de ambiente $a nao declarada
+{ var a = 1; with a = 2 do write(a) }

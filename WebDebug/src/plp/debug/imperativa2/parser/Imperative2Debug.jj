@@ -32,11 +32,13 @@ import plp.debug.imperativa2.ComandoDeclaracaoDebug;
 import plp.debug.imperativa2.DeclaracaoProcedimentoDebug;
 import plp.debug.imperativa2.DefProcedimentoDebug;
 import li2.plp.imperative1.command.*;
+import li2.plp.imperative1.command.IO;
 import li2.plp.imperative1.declaration.*;
 import li2.plp.imperative1.memory.*;
 import li2.plp.imperative2.*;
 import li2.plp.imperative2.command.*;
 import li2.plp.imperative2.declaration.*;
+import li2.plp.imperative2.expression.*;
 import li2.plp.imperative2.memory.*;
 import java.util.*;
 
@@ -85,7 +87,7 @@ public class Imp2DebugParser {
             Programa programa = parser.Input();
             System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Imperativa2 program parsed successfully.");
             
-            if(programa.checaTipo(new ContextoCompilacaoImperativa(entrada))) {
+            if(programa.checaTipo(new ContextoCompilacaoImperativa2(entrada))) {
                 ListaValor saida = programa.executar(new ContextoExecucaoImperativa2(entrada));
                 System.out.println(saida);
             }
@@ -154,6 +156,8 @@ TOKEN : /* TOKENS DE IMPERATIVA 2 */
 {
   < PROC: "proc" >
 | < CALL: "call" >
+| < ENV: "env" >
+| < WITH: "with" >
 }
 
 TOKEN : /* TOKENS DOS POSS�VEIS TIPOS */
@@ -198,7 +202,6 @@ TOKEN : /* IDENTIFIERS */
 |
   < #LETTER:
       [
-       "\u0024",
        "\u0041"-"\u005a",
        "\u005f",
        "\u0061"-"\u007a",
@@ -246,6 +249,7 @@ TOKEN : /* SEPARATORS */
 | < SEMICOLON: ";" >
 | < COMMA: "," >
 | < DOT: "." >
+| < DOLLAR: "$" >
 }
 
 TOKEN : /* OPERATORS */
@@ -288,12 +292,17 @@ Programa Input() :
 
 Programa PPrograma() :
 {
-	Comando retorno;
+	ListaDeclaracaoVariavelAmbiente declaracoesAmbiente = null;
+	Comando comando;
 }
 {
-	retorno = PComando()
+	[ declaracoesAmbiente = PListaDeclaracaoVariavelAmbiente() <SEMICOLON> ]
+	comando = PComando()
 	{
-		return new Programa(retorno);
+		if (declaracoesAmbiente == null) {
+			return new Programa(comando);
+		}
+		return new Programa(declaracoesAmbiente, comando);
 	}
 }
 
@@ -506,12 +515,24 @@ Expressao PExpPrimaria() :
 }
 {
 	(  
-	    retorno = PId()
+	    retorno = PExpVariavelAmbiente()
+	  | retorno = PId()
 	  | retorno = PValor() 
 	  | <LPAREN> retorno = PExpressao() <RPAREN>
 	)
 	{
 		return retorno; 
+	}
+}
+
+ExpVariavelAmbiente PExpVariavelAmbiente() :
+{
+	Id id;
+}
+{
+	<DOLLAR> id = PId()
+	{
+		return new ExpVariavelAmbiente(id);
 	}
 }
 
@@ -666,9 +687,36 @@ Comando PComandoSimples() :
       | retorno = PIO()
       | <LPAREN> retorno = PComando() <RPAREN>
       | retorno = PChamadaProcedimento()
+      | retorno = PComandoWith()
+      | retorno = PAtribuicaoAmbiente()
    	)
     {
         return retorno;
+    }
+}
+
+AtribuicaoAmbiente PAtribuicaoAmbiente() :
+{
+	Id id;
+	Expressao exp;
+}
+{
+	<DOLLAR> id = PId() <ATTRIB> exp = PExpressao()
+	{
+		return new AtribuicaoAmbiente(id, exp);
+	}
+}
+
+ComandoWith PComandoWith() :
+{
+    Id id;
+    Expressao exp;
+    Comando comando;
+}
+{
+    <WITH> id = PId() <ASSIGN> exp = PExpressao() <DO> comando = PComando()
+    {
+		return new ComandoWith(id, exp, comando);
     }
 }
 
@@ -720,6 +768,22 @@ Declaracao PDeclaracao():
 		  
 	)
 	{return retorno;}
+}
+
+ListaDeclaracaoVariavelAmbiente PListaDeclaracaoVariavelAmbiente():
+{
+	DeclaracaoVariavelAmbiente declaracao;
+	ListaDeclaracaoVariavelAmbiente resto = null;
+}
+{
+	declaracao = PDeclaracaoVariavelAmbiente()
+	[ <COMMA> resto = PListaDeclaracaoVariavelAmbiente() ]
+	{
+		if (resto == null) {
+			return new ListaDeclaracaoVariavelAmbiente(declaracao);
+		}
+		return new ListaDeclaracaoVariavelAmbiente(declaracao, resto);
+	}
 }
 
 DeclaracaoComposta PDeclaracaoComposta():
@@ -850,5 +914,18 @@ DeclaracaoVariavel PDeclaracaoVariavel() :
 	   	{retorno = new DeclaracaoVariavel(id, exp);}
 	{
 		return retorno;
+	}
+}
+
+DeclaracaoVariavelAmbiente PDeclaracaoVariavelAmbiente() :
+{
+	Id id;
+	Tipo tipo;
+	Expressao exp;
+}
+{
+	<ENV> id = PId() <COLON> tipo = PTipo() <ASSIGN> exp = PExpressao()
+	{
+		return new DeclaracaoVariavelAmbiente(id, tipo, exp);
 	}
 }

@@ -39,6 +39,11 @@ public class ChamadaProcedimento implements Comando {
 		/*
 		 * o incrementa e o restaura neste ponto servem para criar as variveis
 		 * que serao utilizadas pela execucao do procedimento
+		 *
+		 * a pilha das variaveis de ambiente nao e tocada aqui: incrementa() e
+		 * restaura() so mexem nas variaveis comuns e nos procedimentos. Por
+		 * isso o corpo do procedimento enxerga as ligacoes feitas por um with
+		 * de quem chamou, sem nada ser passado por parametro.
 		 */
 		ambiente.incrementa();
 		ListaDeclaracaoParametro parametrosFormais = procedimento
