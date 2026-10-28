@@ -1,0 +1,2 @@
+// esperado: ERRO ParseException
+{ env x : int = 1; write($x) }

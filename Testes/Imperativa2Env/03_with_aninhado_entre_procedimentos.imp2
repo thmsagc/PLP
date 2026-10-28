@@ -1,0 +1,8 @@
+// esperado: 5 6 5 1 2 1
+env x : int = 1;
+{
+   proc q () { write($x) },
+   proc p () { write($x); (with x = $x + 1 do call q()); write($x) };
+   (with x = 5 do call p());
+   call p()
+}

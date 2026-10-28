@@ -14,6 +14,11 @@ import li2.plp.imperative1.memory.ErroTipoEntradaException;
 import li2.plp.imperative2.memory.AmbienteCompilacaoImperativa2;
 import li2.plp.imperative2.memory.AmbienteExecucaoImperativa2;
 
+/**
+ * Comando <code>with id = Expressao do Comando</code>. Cria uma ligacao nova
+ * para a variavel de ambiente que vale durante toda a execucao do comando,
+ * inclusive dentro dos procedimentos chamados por ele, e a desfaz no fim.
+ */
 public class ComandoWith implements Comando {
 
 	private Id id;
@@ -34,37 +39,33 @@ public class ComandoWith implements Comando {
 			ErroTipoEntradaException {
 		AmbienteExecucaoImperativa2 ambienteImperativa2 =
 				(AmbienteExecucaoImperativa2) ambiente;
+		// avaliada antes de empilhar: em "with x = $x + 1" o $x e o externo
 		Valor valor = expressao.avaliar(ambienteImperativa2);
 
-		ambienteImperativa2.incrementaAmbiente();
+		ambienteImperativa2.incrementaEscopoAmbiente();
 		try {
-			ambienteImperativa2.mapAmbiente(id, valor);
+			ambienteImperativa2.mapVariavelAmbiente(id, valor);
 			return comando.executar(ambienteImperativa2);
 		} finally {
-			ambienteImperativa2.restauraAmbiente();
+			ambienteImperativa2.restauraEscopoAmbiente();
 		}
 	}
 
+	/**
+	 * O id deve ser uma variavel de ambiente declarada e a expressao deve ter
+	 * o tipo declarado. Como o tipo nao muda, o comando e checado no mesmo
+	 * ambiente.
+	 */
 	@Override
 	public boolean checaTipo(AmbienteCompilacaoImperativa ambiente)
 			throws IdentificadorJaDeclaradoException,
 			IdentificadorNaoDeclaradoException, EntradaVaziaException {
 		AmbienteCompilacaoImperativa2 ambienteImperativa2 =
 				(AmbienteCompilacaoImperativa2) ambiente;
-		Tipo tipoAmbiente = ambienteImperativa2.getTipoAmbiente(id);
+		Tipo tipoAmbiente = ambienteImperativa2.getTipoVariavelAmbiente(id);
 
-		if (!expressao.checaTipo(ambienteImperativa2)
-				|| !tipoAmbiente.eIgual(
-						expressao.getTipo(ambienteImperativa2))) {
-			return false;
-		}
-
-		ambienteImperativa2.incrementaAmbiente();
-		try {
-			ambienteImperativa2.mapAmbiente(id, tipoAmbiente);
-			return comando.checaTipo(ambienteImperativa2);
-		} finally {
-			ambienteImperativa2.restauraAmbiente();
-		}
+		return expressao.checaTipo(ambienteImperativa2)
+				&& tipoAmbiente.eIgual(expressao.getTipo(ambienteImperativa2))
+				&& comando.checaTipo(ambienteImperativa2);
 	}
 }

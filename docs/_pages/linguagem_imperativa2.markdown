@@ -12,15 +12,27 @@ order: 7
 * O contexto também é estendido com:
     * um mapeamento de identificadores (nomes de procedimentos) em definições de procedimentos
 * Procedimentos não possuem status de valor
-* Um programa é um comando
+* Um programa é um comando, opcionalmente precedido por declarações de variáveis de ambiente
+* Extensão deste fork: variáveis de ambiente, com escopo dinâmico
+    * declaradas uma vez no início do programa, com tipo e valor padrão: `env x : int = 3;`
+    * lidas com `$x` e alteradas com `$x := e`
+    * redefinidas temporariamente com `with x = e do c`, ligação que vale também dentro dos procedimentos chamados por `c`
+    * ficam em uma pilha própria do contexto, separada das variáveis comuns, que só muda com o `with`
 
 
 ## Fontes
 
-{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/Programa.java" %} ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/Comando.java" %}
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/Programa.java" %} ::= [ {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/ListaDeclaracaoVariavelAmbiente.java" %} ";" ] {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/Comando.java" %}
+
+ListaDeclaracaoVariavelAmbiente ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java" %}\
+{% include code-indent.html %} | DeclaracaoVariavelAmbiente "," ListaDeclaracaoVariavelAmbiente
+
+DeclaracaoVariavelAmbiente ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java" content='"env" Id ":" Tipo "=" Expressao' %}
 
 Comando ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/Atribuicao.java" %}\
+{% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/command/AtribuicaoAmbiente.java" %}\
 {% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/ComandoDeclaracao.java" %}\
+{% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/command/ComandoWith.java" %}\
 {% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/While.java" %}\
 {% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/IfThenElse.java" %}\
 {% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/IO.java" %}\
@@ -32,8 +44,13 @@ Skip ::=
 
 Atribuicao ::= {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/Id.java" %} ":=" {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/Expressao.java" %}
 
+AtribuicaoAmbiente ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/command/AtribuicaoAmbiente.java" content='"$" Id ":=" Expressao' %}
+
+ComandoWith ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/command/ComandoWith.java" content='"with" Id "=" Expressao "do" Comando' %}
+
 Expressao ::= {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/Valor.java" %}\
-{% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/ExpUnaria.java" %} | {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/ExpBinaria.java" %} | Id
+{% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/ExpUnaria.java" %} | {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/ExpBinaria.java" %} | Id\
+{% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/expression/ExpVariavelAmbiente.java" content='"$" Id' %}
 
 Valor ::= {% include code-link.html path="Imperativa2/src/li2/plp/expressions2/expression/ValorConcreto.java" %}
 
@@ -88,7 +105,12 @@ ListaExpressao ::= Expressao \| Expressao, ListaExpressao
 {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/memory/ListaValor.java" %}\
 {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DefProcedimento.java" %}\
 {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/ProcedimentoJaDeclaradoException.java" %}\
-{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/ProcedimentoNaoDeclaradoException.java" %}
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/ProcedimentoNaoDeclaradoException.java" %}\
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/AmbienteCompilacaoImperativa2.java" %}\
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/ContextoCompilacaoImperativa2.java" %}\
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/ContextoVariaveisAmbiente.java" %}\
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/VariavelAmbienteJaDeclaradaException.java" %}\
+{% include code-link.html path="Imperativa2/src/li2/plp/imperative2/memory/VariavelAmbienteNaoDeclaradaException.java" %}
 
 
 ## Parser

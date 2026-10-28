@@ -1,0 +1,10 @@
+// esperado: 3 10 3
+env tentativas : int = 3;
+{
+   proc conectar () {
+      write($tentativas)
+   };
+   call conectar();
+   (with tentativas = 10 do call conectar());
+   call conectar()
+}

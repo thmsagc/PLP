@@ -100,6 +100,8 @@ export const AVAILABLE_LANGUAGES: NotebookLanguage[] = [
       "read",
       "proc",
       "call",
+      "env",
+      "with",
     ],
     literals: ["true", "false"],
     types: ["string", "int", "boolean"],

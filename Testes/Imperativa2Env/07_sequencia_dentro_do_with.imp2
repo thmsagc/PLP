@@ -1,0 +1,3 @@
+// esperado: 2 2
+env x : int = 1;
+with x = 2 do write($x); write($x)

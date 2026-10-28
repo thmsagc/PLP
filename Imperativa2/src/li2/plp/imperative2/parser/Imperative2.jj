@@ -270,22 +270,17 @@ Programa Input() :
 
 Programa PPrograma() :
 {
-	Comando retorno;
-	Declaracao declaracaoAmbiente;
+	ListaDeclaracaoVariavelAmbiente declaracoesAmbiente = null;
+	Comando comando;
 }
 {
-	(
-		LOOKAHEAD(<ENV>)
-		declaracaoAmbiente = PDeclaracaoAmbienteComposta() <SEMICOLON>
-		retorno = PComando()
-		{
-			retorno = new ComandoDeclaracao(declaracaoAmbiente, retorno);
-		}
-		|
-		retorno = PComando()
-	)
+	[ declaracoesAmbiente = PListaDeclaracaoVariavelAmbiente() <SEMICOLON> ]
+	comando = PComando()
 	{
-		return new Programa(retorno);
+		if (declaracoesAmbiente == null) {
+			return new Programa(comando);
+		}
+		return new Programa(declaracoesAmbiente, comando);
 	}
 }
 
@@ -671,10 +666,23 @@ Comando PComandoSimples() :
       | <LPAREN> retorno = PComando() <RPAREN>
       | retorno = PChamadaProcedimento()
       | retorno = PComandoWith()
+      | retorno = PAtribuicaoAmbiente()
    	)
     {
         return retorno;
     }
+}
+
+AtribuicaoAmbiente PAtribuicaoAmbiente() :
+{
+	Id id;
+	Expressao exp;
+}
+{
+	<DOLLAR> id = PId() <ATTRIB> exp = PExpressao()
+	{
+		return new AtribuicaoAmbiente(id, exp);
+	}
 }
 
 ComandoWith PComandoWith() :
@@ -734,19 +742,20 @@ Declaracao PDeclaracao():
 	{return retorno;}
 }
 
-Declaracao PDeclaracaoAmbienteComposta():
+ListaDeclaracaoVariavelAmbiente PListaDeclaracaoVariavelAmbiente():
 {
-	Declaracao d1;
-	Declaracao d2;
+	DeclaracaoVariavelAmbiente declaracao;
+	ListaDeclaracaoVariavelAmbiente resto = null;
 }
 {
-	d1 = PDeclaracaoVariavelAmbiente()
-	(
-		<COMMA> d2 = PDeclaracaoAmbienteComposta()
-		{return new DeclaracaoComposta(d1, d2);}
-		|
-		{return d1;}
-	)
+	declaracao = PDeclaracaoVariavelAmbiente()
+	[ <COMMA> resto = PListaDeclaracaoVariavelAmbiente() ]
+	{
+		if (resto == null) {
+			return new ListaDeclaracaoVariavelAmbiente(declaracao);
+		}
+		return new ListaDeclaracaoVariavelAmbiente(declaracao, resto);
+	}
 }
 
 DeclaracaoComposta PDeclaracaoComposta():

@@ -1,0 +1,4 @@
+// entrada: 42
+// esperado: 42
+env x : int = 1;
+{ var n = 0; read(n); with x = n do write($x) }

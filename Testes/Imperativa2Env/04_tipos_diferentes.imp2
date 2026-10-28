@@ -1,0 +1,4 @@
+// esperado: 1 "s" true "tt"
+env a : int = 1, env b : string = "s", env c : boolean = true;
+write($a); write($b); write($c);
+with b = "t" do write($b ++ $b)

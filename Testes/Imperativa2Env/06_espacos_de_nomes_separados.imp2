@@ -1,0 +1,3 @@
+// esperado: "comum" 1
+env x : int = 1;
+{ var x = "comum"; write(x); write($x) }
