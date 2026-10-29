@@ -1,0 +1,3 @@
+// esperado: ERRO Erro de tipo
+loadenv "env/duplicada.env";
+write($PORTA)

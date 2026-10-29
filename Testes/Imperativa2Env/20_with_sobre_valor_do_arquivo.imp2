@@ -1,0 +1,8 @@
+// esperado: 8080 1 8080
+loadenv "env/app.env";
+{
+   proc p () { write($PORTA) };
+   call p();
+   (with PORTA = 1 do call p());
+   call p()
+}
