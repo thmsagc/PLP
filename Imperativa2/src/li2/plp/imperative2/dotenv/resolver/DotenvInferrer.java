@@ -4,8 +4,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.apache.commons.text.StringEscapeUtils;
-
 import li2.plp.expressions1.util.Tipo;
 import li2.plp.expressions1.util.TipoPrimitivo;
 import li2.plp.expressions2.expression.Id;
@@ -75,7 +73,63 @@ public class DotenvInferrer {
 	}
 
 	private static String desescapar(String s) {
-		return s == null ? null : StringEscapeUtils.unescapeJava(s);
+		if (s == null || s.indexOf('\\') == -1) {
+			return s;
+		}
+		StringBuilder sb = new StringBuilder(s.length());
+		int len = s.length();
+		for (int i = 0; i < len; i++) {
+			char c = s.charAt(i);
+			if (c == '\\' && i + 1 < len) {
+				char next = s.charAt(++i);
+				switch (next) {
+				case 'n':
+					sb.append('\n');
+					break;
+				case 'r':
+					sb.append('\r');
+					break;
+				case 't':
+					sb.append('\t');
+					break;
+				case 'b':
+					sb.append('\b');
+					break;
+				case 'f':
+					sb.append('\f');
+					break;
+				case '\\':
+					sb.append('\\');
+					break;
+				case '"':
+					sb.append('"');
+					break;
+				case '\'':
+					sb.append('\'');
+					break;
+				case 'u':
+					if (i + 4 < len) {
+						String hex = s.substring(i + 1, i + 5);
+						try {
+							sb.append((char) Integer.parseInt(hex, 16));
+							i += 4;
+							break;
+						} catch (NumberFormatException e) {
+							sb.append('\\').append(next);
+						}
+					} else {
+						sb.append('\\').append(next);
+					}
+					break;
+				default:
+					sb.append(next);
+					break;
+				}
+			} else {
+				sb.append(c);
+			}
+		}
+		return sb.toString();
 	}
 
 	public Map<Id, Tipo> getTipos() {
