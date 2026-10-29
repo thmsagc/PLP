@@ -4,6 +4,24 @@ import type { ID } from "../models/types/id";
 import type { LanguageFn } from "highlight.js";
 import type { Language } from "../models/types/execution";
 
+// Separa as declarações env do início da célula (até o primeiro ";" fora de string).
+// O que sai vira espaço, para o restante manter as mesmas linhas e colunas.
+const splitEnvDeclarations = (content: string) => {
+  if (!/^\s*env\b/.test(content)) return { declarations: "", rest: content };
+
+  let inString = false;
+  for (let i = 0; i < content.length; i++) {
+    if (content[i] === '"') inString = !inString;
+    else if (content[i] === ";" && !inString) {
+      return {
+        declarations: content.slice(0, i).trim(),
+        rest: content.slice(0, i + 1).replace(/[^\n]/g, " ") + content.slice(i + 1),
+      };
+    }
+  }
+  return { declarations: "", rest: content };
+};
+
 export const buildNotebookScopeCode = (cells: Cell[], targetCellId: ID) => {
   const currentCell = cells.find((c) => c.id === targetCellId);
   if (!(currentCell instanceof CodeCell)) return "";
@@ -12,8 +30,12 @@ export const buildNotebookScopeCode = (cells: Cell[], targetCellId: ID) => {
     .filter((c): c is CodeCell => c instanceof CodeCell && c.id !== targetCellId && c.executionOrder !== undefined)
     .sort((a, b) => a.executionOrder! - b.executionOrder!);
 
-  const combined = [...previouslyRun, currentCell].map((c) => c.content).join("\n");
-  return `{\n${combined}\n}`;
+  // Na Imp2, declarações env só são aceitas no início do programa, fora do bloco
+  const parts = [...previouslyRun, currentCell].map((c) => splitEnvDeclarations(c.content));
+  const declarations = parts.map((p) => p.declarations).filter(Boolean).join(", ");
+  const combined = parts.map((p) => p.rest).join("\n");
+
+  return declarations ? `${declarations}; {\n${combined}\n}` : `{\n${combined}\n}`;
 };
 
 export const escapeHtml = (text: string) => {
