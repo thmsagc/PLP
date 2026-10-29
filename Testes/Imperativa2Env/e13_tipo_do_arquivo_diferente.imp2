@@ -1,0 +1,3 @@
+// esperado: ERRO Erro de tipo
+loadenv "env/invalido.env", env PORTA : int = 3000;
+write($PORTA)

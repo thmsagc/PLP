@@ -1,16 +1,22 @@
 #!/usr/bin/env bash
 # Roda os programas desta pasta no interpretador da Imperativa2 e compara com
-# o comentario "// esperado:" de cada um. "// entrada:" e a entrada do read.
+# o comentario "// esperado:" de cada um. "// entrada:" e a entrada do read e
+# "// args:" sao argumentos extras, como --env. Os caminhos de .env sao relativos
+# a esta pasta.
 # Antes: cd Imperativa2 && mvn clean generate-sources compile
 DIR="$(cd "$(dirname "$0")" && pwd)"
-CP="$DIR/../../Imperativa2/target/classes"
+CP="$DIR/../../Imperativa2/target/classes:$DIR/../../Imperativa2/target/dependency/*"
+# no Git Bash do Windows o java espera caminhos do Windows separados por ";"
+command -v cygpath >/dev/null && CP="$(cygpath -wp "$CP")"
+cd "$DIR"
 JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 falhas=0
 for f in "$DIR"/*.imp2 "$DIR"/../TesteImperativa2.txt; do
   esperado=$(sed -n 's|^// esperado: *||p' "$f")
   entrada=$(sed -n 's|^// entrada: *||p' "$f")
+  args=$(sed -n 's|^// args: *||p' "$f")
   if [ "$(basename "$f")" = "TesteImperativa2.txt" ]; then esperado="2 7"; entrada="7"; fi
-  saida=$("$JAVA" -cp "$CP" li2.plp.imperative2.parser.Imp2Parser "$f" $entrada 2>&1 \
+  saida=$("$JAVA" -cp "$CP" li2.plp.imperative2.parser.Imp2Parser "$f" $args $entrada 2>&1 \
     | grep -Ev '^\s*(Call|Return|Consumed|Visited)|Reading from|parsed successfully|^\s+at |^\s*$')
   case "$esperado" in
     ERRO\ *) grep -qF "${esperado#ERRO }" <<<"$saida" && ok=1 || ok=0 ;;

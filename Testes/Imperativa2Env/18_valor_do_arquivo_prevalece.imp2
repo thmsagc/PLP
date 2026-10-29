@@ -1,0 +1,3 @@
+// esperado: 9999
+loadenv "env/sobrescrita.env", env PORTA : int = 3000;
+write($PORTA)

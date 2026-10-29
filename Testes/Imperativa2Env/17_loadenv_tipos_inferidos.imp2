@@ -1,0 +1,3 @@
+// esperado: 8080 true "Linguagem Imperativa 2"
+loadenv "env/app.env";
+write($PORTA); write($DEBUG); write($TITULO)
