@@ -284,7 +284,7 @@ Se sobrar tempo, a intenção é levar o mesmo mecanismo para a LOO1, onde ele f
 
 ## Como executar
 
-O procedimento é o mesmo do repositório original.
+O código do programa LI2 a ser executado deve ser colocado no arquivo **`Imperativa2/input`**. Para mais detalhes e roteiros de demonstração passo a passo, veja o guia [**COMO-EXECUTAR.md**](COMO-EXECUTAR.md).
 
 ```bash
 cd Imperativa2

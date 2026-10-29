@@ -7,6 +7,13 @@
   <properties>
     <revision>0.0.1</revision>
   </properties>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-text</artifactId>
+      <version>1.12.0</version>
+    </dependency>
+  </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <resources>
@@ -59,13 +66,25 @@
         <version>2.6</version>
         <executions>
           <execution>
+            <id>javacc-imp2</id>
             <goals>
               <goal>javacc</goal>
             </goals>
             <configuration>
-            <sourceDirectory>
-            ${basedir}/src/li2/plp/imperative2/parser
-            </sourceDirectory>
+              <sourceDirectory>
+                ${basedir}/src/li2/plp/imperative2/parser
+              </sourceDirectory>
+            </configuration>
+          </execution>
+          <execution>
+            <id>javacc-dotenv</id>
+            <goals>
+              <goal>javacc</goal>
+            </goals>
+            <configuration>
+              <sourceDirectory>
+                ${basedir}/src/li2/plp/imperative2/dotenv/parser
+              </sourceDirectory>
             </configuration>
           </execution>
         </executions>

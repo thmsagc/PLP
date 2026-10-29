@@ -18,6 +18,9 @@ import li2.plp.imperative2.command.*;
 import li2.plp.imperative2.declaration.*;
 import li2.plp.imperative2.expression.*;
 import li2.plp.imperative2.memory.*;
+import li2.plp.imperative2.dotenv.model.ArquivoDotenv;
+import li2.plp.imperative2.dotenv.parser.DotenvParser;
+import li2.plp.imperative2.dotenv.resolver.*;
 import java.util.*;
 
 public class Imp2Parser {
@@ -25,32 +28,42 @@ public class Imp2Parser {
     public static void main(String args[]) {
 	    Imp2Parser parser;
 	    ListaValor entrada = new ListaValor();
-	    if (args.length == 0) {
+	    String envFilePath = null;
+	    List remainingArgs = new LinkedList();
+
+	    for (int i = 0; i < args.length; i++) {
+	        if (args[i].equals("--env") && i + 1 < args.length) {
+	            envFilePath = args[++i];
+	        } else if (args[i].startsWith("--env=")) {
+	            envFilePath = args[i].substring(6);
+	        } else {
+	            remainingArgs.add(args[i]);
+	        }
+	    }
+
+	    if (remainingArgs.isEmpty()) {
 	    	System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Reading from standard input . . .");
 	    	parser = new Imp2Parser(System.in);
-	    } else{
-	    	System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Reading from file " + args[0] + " . . .");
+	    } else {
+	    	System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Reading from file " + remainingArgs.get(0) + " . . .");
 	    	try {
-	    		parser = new Imp2Parser(new java.io.FileInputStream(args[0]));
+	    		parser = new Imp2Parser(new java.io.FileInputStream((String) remainingArgs.get(0)));
 	    	} catch (java.io.FileNotFoundException e) {
-	        	System.out.println("Java Parser Version 1.0.2:  File " + args[0] + " not found.");
+	        	System.out.println("Java Parser Version 1.0.2:  File " + remainingArgs.get(0) + " not found.");
 	        	return;
 	    	}
 	    	
 	    	List valores = new LinkedList();
-	    	for(int i=1;i<args.length;i++)
-	    	{
-	    	 	String parametro = args[i];
-	    	 	
+	    	for (int i = 1; i < remainingArgs.size(); i++) {
+	    	 	String parametro = (String) remainingArgs.get(i);
 	    	 	try { 
 	    	 		Integer inteiro = Integer.valueOf(parametro);
 	    	 		valores.add(new ValorInteiro(inteiro.intValue()));
 	    	 		continue;
-	    	 	} catch(NumberFormatException e) {
-	    	 		
+	    	 	} catch (NumberFormatException e) {
 	    	 	}
 	    	 	
-	    	 	if(parametro.equalsIgnoreCase("true") 
+	    	 	if (parametro.equalsIgnoreCase("true") 
 	    	 	    || parametro.equalsIgnoreCase("false")) {
 	    	 		Boolean booleano = Boolean.valueOf(parametro);
 	    	 		valores.add(new ValorBooleano(booleano.booleanValue()));
@@ -58,18 +71,39 @@ public class Imp2Parser {
 	    	 	    valores.add(new ValorString(parametro));
 	    	 	}			
 	    	}
-	    	  entrada = criaListaValor(valores);
+	    	entrada = criaListaValor(valores);
 	    } 
 	    
 	    try {
             Programa programa = parser.Input();
             System.out.println("Imperativa 2 PLP Parser Version 0.0.1:  Imperativa2 program parsed successfully.");
             
-            if(programa.checaTipo(new ContextoCompilacaoImperativa2(entrada))) {
-                ListaValor saida = programa.executar(new ContextoExecucaoImperativa2(entrada));
-                System.out.println(saida);
+            ContextoCompilacaoImperativa2 contextoCompilacao = new ContextoCompilacaoImperativa2(entrada);
+            ContextoExecucaoImperativa2 contextoExecucao = new ContextoExecucaoImperativa2(entrada);
+
+            if (envFilePath != null) {
+                java.io.File envFile = new java.io.File(envFilePath);
+                if (envFile.exists()) {
+                    ArquivoDotenv envAst = DotenvParser.parse(envFile);
+                    DotenvInferrer inferrer = DotenvInferrer.processar(envAst);
+                    for (Iterator it = inferrer.getTipos().entrySet().iterator(); it.hasNext();) {
+                        Map.Entry entry = (Map.Entry) it.next();
+                        contextoCompilacao.mapAmbiente((Id) entry.getKey(), (Tipo) entry.getValue());
+                    }
+                    for (Iterator it = inferrer.getValores().entrySet().iterator(); it.hasNext();) {
+                        Map.Entry entry = (Map.Entry) it.next();
+                        contextoExecucao.mapAmbiente((Id) entry.getKey(), (Valor) entry.getValue());
+                    }
+                } else {
+                    System.err.println("Arquivo de ambiente nao encontrado: " + envFilePath);
+                    return;
+                }
             }
-            else {
+
+            if (programa.checaTipo(contextoCompilacao)) {
+                ListaValor saida = programa.executar(contextoExecucao);
+                System.out.println(saida);
+            } else {
                 System.out.println("Erro de tipo");
             }
         } catch (Exception e) {
@@ -136,6 +170,7 @@ TOKEN : /* TOKENS DE IMPERATIVA 2 */
 | < CALL: "call" >
 | < ENV: "env" >
 | < WITH: "with" >
+| < LOADENV: "loadenv" >
 }
 
 TOKEN : /* TOKENS DOS POSS�VEIS TIPOS */
@@ -275,7 +310,7 @@ Programa PPrograma() :
 }
 {
 	(
-		LOOKAHEAD(<ENV>)
+		LOOKAHEAD(<ENV> | <LOADENV>)
 		declaracaoAmbiente = PDeclaracaoAmbienteComposta() <SEMICOLON>
 		retorno = PComando()
 		{
@@ -734,13 +769,40 @@ Declaracao PDeclaracao():
 	{return retorno;}
 }
 
+
+Declaracao PDeclaracaoAmbiente():
+{
+	Declaracao d;
+}
+{
+	(
+		d = PDeclaracaoVariavelAmbiente()
+		|
+		d = PDeclaracaoLoadEnv()
+	)
+	{
+		return d;
+	}
+}
+
+DeclaracaoLoadEnv PDeclaracaoLoadEnv():
+{
+	Expressao caminho;
+}
+{
+	<LOADENV> caminho = PExpressao()
+	{
+		return new DeclaracaoLoadEnv(caminho);
+	}
+}
+
 Declaracao PDeclaracaoAmbienteComposta():
 {
 	Declaracao d1;
 	Declaracao d2;
 }
 {
-	d1 = PDeclaracaoVariavelAmbiente()
+	d1 = PDeclaracaoAmbiente()
 	(
 		<COMMA> d2 = PDeclaracaoAmbienteComposta()
 		{return new DeclaracaoComposta(d1, d2);}

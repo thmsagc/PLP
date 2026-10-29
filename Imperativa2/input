@@ -1,3 +1,58 @@
-env x : int = 3;
-(with x = 10 do write($x));
-write($x)
+// ============================================================================
+// CASO 1: Carregamento do .env + variavel declarada + tipos + escopo com with
+// (ATIVO)
+// ============================================================================
+loadenv ".env",
+env tentativas : int = 5;
+write($APP_NAME);
+write($HOST);
+write($PORTA);
+write($DEBUG);
+(with PORTA = 9090 do write($PORTA));
+write($PORTA);
+write($tentativas)
+
+/*
+// ============================================================================
+// CASO 2: Apenas variaveis carregadas diretamente do .env
+// ============================================================================
+loadenv ".env";
+write($APP_NAME);
+write($DATABASE_URL);
+write($TIMEOUT)
+*/
+
+/*
+// ============================================================================
+// CASO 3: Sobrescrita de valor padrao (o .env prevalece sobre o default do codigo)
+// No .env PORTA=8080. O default 3000 sera sobrescrito por 8080.
+// ============================================================================
+loadenv ".env",
+env PORTA : int = 3000;
+write($PORTA)
+*/
+
+/*
+// ============================================================================
+// CASO 4: Procedimento acessando variavel de ambiente e modificacao com with
+// ============================================================================
+loadenv ".env";
+{
+    proc exibirPorta() {
+        write($PORTA)
+    };
+    call exibirPorta();
+    with PORTA = 9999 do call exibirPorta();
+    call exibirPorta()
+}
+*/
+
+/*
+// ============================================================================
+// CASO 5: Incompatibilidade estatica de tipos (checaTipo rejeita antes de executar)
+// No .env APP_NAME eh string, mas o codigo declara como int.
+// ============================================================================
+loadenv ".env",
+env APP_NAME : int = 123;
+write($APP_NAME)
+*/

@@ -6,6 +6,7 @@ import li2.plp.expressions2.expression.Id;
 import li2.plp.expressions2.expression.Valor;
 import li2.plp.expressions2.memory.IdentificadorJaDeclaradoException;
 import li2.plp.expressions2.memory.IdentificadorNaoDeclaradoException;
+import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
 import li2.plp.imperative1.declaration.Declaracao;
 import li2.plp.imperative1.memory.AmbienteCompilacaoImperativa;
 import li2.plp.imperative1.memory.AmbienteExecucaoImperativa;
@@ -29,8 +30,13 @@ public class DeclaracaoVariavelAmbiente extends Declaracao {
 	public AmbienteExecucaoImperativa elabora(AmbienteExecucaoImperativa ambiente) 
 		throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
 		AmbienteExecucaoImperativa2 ambienteImperativa2 = (AmbienteExecucaoImperativa2) ambiente;
-		Valor valorInicial = expressao.avaliar(ambienteImperativa2);
-		ambienteImperativa2.mapAmbiente(id, valorInicial);
+		try {
+			// Se ja existe (vindo de loadenv ou flag), mantem o valor vindo de fora
+			ambienteImperativa2.getAmbiente(id);
+		} catch (VariavelNaoDeclaradaException e) {
+			Valor valorInicial = expressao.avaliar(ambienteImperativa2);
+			ambienteImperativa2.mapAmbiente(id, valorInicial);
+		}
 		return ambienteImperativa2;
 	}
 
@@ -47,7 +53,15 @@ public class DeclaracaoVariavelAmbiente extends Declaracao {
 			return false;
 		}
 
-		ambienteImperativa2.mapAmbiente(id, tipo);
+		try {
+			Tipo tipoExistente = ambienteImperativa2.getTipoAmbiente(id);
+			if (!tipoExistente.eIgual(tipo)) {
+				return false;
+			}
+		} catch (VariavelNaoDeclaradaException e) {
+			ambienteImperativa2.mapAmbiente(id, tipo);
+		}
+
 		return true;
 	}
 
