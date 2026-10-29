@@ -5,9 +5,7 @@
 # a esta pasta.
 # Antes: cd Imperativa2 && mvn clean generate-sources compile
 DIR="$(cd "$(dirname "$0")" && pwd)"
-CP="$DIR/../../Imperativa2/target/classes:$DIR/../../Imperativa2/target/dependency/*"
-# no Git Bash do Windows o java espera caminhos do Windows separados por ";"
-command -v cygpath >/dev/null && CP="$(cygpath -wp "$CP")"
+CP="$DIR/../../Imperativa2/target/classes"
 cd "$DIR"
 JAVA="${JAVA_HOME:+$JAVA_HOME/bin/}java"
 falhas=0

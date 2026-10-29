@@ -7,13 +7,6 @@
   <properties>
     <revision>0.0.1</revision>
   </properties>
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-text</artifactId>
-      <version>1.12.0</version>
-    </dependency>
-  </dependencies>
   <build>
     <sourceDirectory>src</sourceDirectory>
     <resources>
@@ -40,24 +33,6 @@
               <sources>
                 <source>target/generated-sources/javacc</source>
               </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <!-- copia o commons-text para target/dependency, usado por Testes/Imperativa2Env/executar.sh -->
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.6.1</version>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <includeScope>runtime</includeScope>
             </configuration>
           </execution>
         </executions>
