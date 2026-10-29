@@ -72,51 +72,64 @@ public class DotenvInferrer {
 		return new ValorString(texto);
 	}
 
-	/**
-	 * Trata as sequencias de escape de Java: barra invertida seguida de n, t,
-	 * r, b, f, aspas, barra ou u com quatro digitos hexadecimais.
-	 * Feito a mao, sem commons-text, porque o TeaVM nao consegue traduzir
-	 * o StringEscapeUtils para JavaScript (IDE web).
-	 */
 	private static String desescapar(String s) {
-		if (s == null || s.indexOf('\\') < 0) {
+		if (s == null || s.indexOf('\\') == -1) {
 			return s;
 		}
 		StringBuilder sb = new StringBuilder(s.length());
-		for (int i = 0; i < s.length(); i++) {
+		int len = s.length();
+		for (int i = 0; i < len; i++) {
 			char c = s.charAt(i);
-			if (c != '\\' || i + 1 == s.length()) {
-				sb.append(c);
-				continue;
-			}
-			char e = s.charAt(++i);
-			switch (e) {
-			case 'n': sb.append('\n'); break;
-			case 't': sb.append('\t'); break;
-			case 'r': sb.append('\r'); break;
-			case 'b': sb.append('\b'); break;
-			case 'f': sb.append('\f'); break;
-			case 'u':
-				if (i + 4 < s.length() && ehHex(s.substring(i + 1, i + 5))) {
-					sb.append((char) Integer.parseInt(s.substring(i + 1, i + 5), 16));
-					i += 4;
-				} else {
-					sb.append('\\').append(e);
+			if (c == '\\' && i + 1 < len) {
+				char next = s.charAt(++i);
+				switch (next) {
+				case 'n':
+					sb.append('\n');
+					break;
+				case 'r':
+					sb.append('\r');
+					break;
+				case 't':
+					sb.append('\t');
+					break;
+				case 'b':
+					sb.append('\b');
+					break;
+				case 'f':
+					sb.append('\f');
+					break;
+				case '\\':
+					sb.append('\\');
+					break;
+				case '"':
+					sb.append('"');
+					break;
+				case '\'':
+					sb.append('\'');
+					break;
+				case 'u':
+					if (i + 4 < len) {
+						String hex = s.substring(i + 1, i + 5);
+						try {
+							sb.append((char) Integer.parseInt(hex, 16));
+							i += 4;
+							break;
+						} catch (NumberFormatException e) {
+							sb.append('\\').append(next);
+						}
+					} else {
+						sb.append('\\').append(next);
+					}
+					break;
+				default:
+					sb.append(next);
+					break;
 				}
-				break;
-			default: sb.append(e); // \" \' \\ e qualquer outro caractere
+			} else {
+				sb.append(c);
 			}
 		}
 		return sb.toString();
-	}
-
-	private static boolean ehHex(String s) {
-		for (int i = 0; i < s.length(); i++) {
-			if (Character.digit(s.charAt(i), 16) < 0) {
-				return false;
-			}
-		}
-		return true;
 	}
 
 	public Map<Id, Tipo> getTipos() {
