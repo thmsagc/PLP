@@ -167,6 +167,25 @@ A primeira é que a restrição de que variáveis de ambiente só podem ser decl
 
 A segunda é que `ComandoWith` termina em `Comando`, e não em `ComandoSimples`. Isso significa que em `with x = 1 do c1; c2` os dois comandos ficam dentro do `with`, exatamente como já acontece com `while` e com `if`. Mantivemos o comportamento igual ao do resto da linguagem em vez de inventar uma regra diferente.
 
+### Sintaxe abstrata dos arquivos .env
+
+O carregamento via `loadenv` e pela flag CLI `--env` utiliza um parser JavaCC dedicado ([`Dotenv.jj`](https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/parser/Dotenv.jj)) que produz uma AST própria. A BNF da sintaxe dos arquivos `.env` é apresentada abaixo, com links diretos para as classes da AST:
+
+<pre>
+<a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ArquivoDotenv.java">ArquivoDotenv</a>      ::= [ <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ListaEntradaDotenv.java">ListaEntradaDotenv</a> ]
+
+<a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ListaEntradaDotenv.java">ListaEntradaDotenv</a> ::= <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/EntradaDotenv.java">EntradaDotenv</a>
+                     | <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/EntradaDotenv.java">EntradaDotenv</a> <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ListaEntradaDotenv.java">ListaEntradaDotenv</a>
+
+<a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/EntradaDotenv.java">EntradaDotenv</a>      ::= <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/expressions2/expression/Id.java">Id</a> "=" [ <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ValorDotenv.java">ValorDotenv</a> ]
+
+<a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ValorDotenv.java">ValorDotenv</a>        ::= <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ValorAspado.java">ValorAspado</a>
+                     | <a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ValorSimples.java">ValorSimples</a>
+
+<a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ValorAspado.java">ValorAspado</a>        ::= '"' ... '"' | "'" ... "'"
+<a href="https://raw.githubusercontent.com/thmsagc/PLP/refs/heads/master/Imperativa2/src/li2/plp/imperative2/dotenv/model/ValorSimples.java">ValorSimples</a>       ::= ... (texto literal sem aspas ate quebra de linha ou comentario)
+</pre>
+
 ## Mudanças na gramática JavaCC
 
 O parser da LI2 fica em `Imperativa2/src/li2/plp/imperative2/parser/Imperative2.jj` e é gerado pelo JavaCC no `generate-sources` do Maven.
