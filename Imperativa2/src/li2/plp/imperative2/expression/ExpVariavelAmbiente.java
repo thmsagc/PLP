@@ -6,6 +6,7 @@ import li2.plp.expressions2.expression.Id;
 import li2.plp.expressions2.expression.Valor;
 import li2.plp.expressions2.memory.AmbienteCompilacao;
 import li2.plp.expressions2.memory.AmbienteExecucao;
+import li2.plp.expressions2.memory.IdentificadorNaoDeclaradoException;
 import li2.plp.expressions2.memory.VariavelJaDeclaradaException;
 import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
 import li2.plp.imperative2.memory.AmbienteCompilacaoImperativa2;
@@ -26,7 +27,7 @@ public class ExpVariavelAmbiente implements Expressao {
 			VariavelJaDeclaradaException {
 		AmbienteExecucaoImperativa2 ambienteImperativa2 =
 				(AmbienteExecucaoImperativa2) ambiente;
-		return ambienteImperativa2.getAmbiente(id);
+		return ambienteImperativa2.getVariavelAmbiente(id);
 	}
 
 	@Override
@@ -43,7 +44,7 @@ public class ExpVariavelAmbiente implements Expressao {
 			VariavelJaDeclaradaException {
 		AmbienteCompilacaoImperativa2 ambienteImperativa2 =
 				(AmbienteCompilacaoImperativa2) ambiente;
-		return ambienteImperativa2.getTipoAmbiente(id);
+		return ambienteImperativa2.getTipoVariavelAmbiente(id);
 	}
 
 	@Override
@@ -54,9 +55,7 @@ public class ExpVariavelAmbiente implements Expressao {
 				return this;
 			}
 			return valor.clone();
-		} catch (VariavelNaoDeclaradaException e) {
-			return this;
-		} catch (VariavelJaDeclaradaException e) {
+		} catch (IdentificadorNaoDeclaradoException e) {
 			return this;
 		}
 	}

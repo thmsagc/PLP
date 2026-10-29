@@ -1,0 +1,2 @@
+// esperado: ERRO ParseException
+{ var a$b = 1; write(a$b) }

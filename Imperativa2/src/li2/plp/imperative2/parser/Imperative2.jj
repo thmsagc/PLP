@@ -88,11 +88,11 @@ public class Imp2Parser {
                     DotenvInferrer inferrer = DotenvInferrer.processar(envAst);
                     for (Iterator it = inferrer.getTipos().entrySet().iterator(); it.hasNext();) {
                         Map.Entry entry = (Map.Entry) it.next();
-                        contextoCompilacao.mapAmbiente((Id) entry.getKey(), (Tipo) entry.getValue());
+                        contextoCompilacao.mapVariavelDotenv((Id) entry.getKey(), (Tipo) entry.getValue());
                     }
                     for (Iterator it = inferrer.getValores().entrySet().iterator(); it.hasNext();) {
                         Map.Entry entry = (Map.Entry) it.next();
-                        contextoExecucao.mapAmbiente((Id) entry.getKey(), (Valor) entry.getValue());
+                        contextoExecucao.mapVariavelAmbiente((Id) entry.getKey(), (Valor) entry.getValue());
                     }
                 } else {
                     System.err.println("Arquivo de ambiente nao encontrado: " + envFilePath);
@@ -305,22 +305,17 @@ Programa Input() :
 
 Programa PPrograma() :
 {
-	Comando retorno;
-	Declaracao declaracaoAmbiente;
+	ListaDeclaracaoVariavelAmbiente declaracoesAmbiente = null;
+	Comando comando;
 }
 {
-	(
-		LOOKAHEAD(<ENV> | <LOADENV>)
-		declaracaoAmbiente = PDeclaracaoAmbienteComposta() <SEMICOLON>
-		retorno = PComando()
-		{
-			retorno = new ComandoDeclaracao(declaracaoAmbiente, retorno);
-		}
-		|
-		retorno = PComando()
-	)
+	[ LOOKAHEAD(<ENV> | <LOADENV>) declaracoesAmbiente = PListaDeclaracaoVariavelAmbiente() <SEMICOLON> ]
+	comando = PComando()
 	{
-		return new Programa(retorno);
+		if (declaracoesAmbiente == null) {
+			return new Programa(comando);
+		}
+		return new Programa(declaracoesAmbiente, comando);
 	}
 }
 
@@ -706,10 +701,23 @@ Comando PComandoSimples() :
       | <LPAREN> retorno = PComando() <RPAREN>
       | retorno = PChamadaProcedimento()
       | retorno = PComandoWith()
+      | retorno = PAtribuicaoAmbiente()
    	)
     {
         return retorno;
     }
+}
+
+AtribuicaoAmbiente PAtribuicaoAmbiente() :
+{
+	Id id;
+	Expressao exp;
+}
+{
+	<DOLLAR> id = PId() <ATTRIB> exp = PExpressao()
+	{
+		return new AtribuicaoAmbiente(id, exp);
+	}
 }
 
 ComandoWith PComandoWith() :
@@ -769,10 +777,25 @@ Declaracao PDeclaracao():
 	{return retorno;}
 }
 
-
-Declaracao PDeclaracaoAmbiente():
+ListaDeclaracaoVariavelAmbiente PListaDeclaracaoVariavelAmbiente():
 {
-	Declaracao d;
+	DeclaracaoVariavelAmbiente declaracao;
+	ListaDeclaracaoVariavelAmbiente resto = null;
+}
+{
+	declaracao = PItemDeclaracaoAmbiente()
+	[ <COMMA> resto = PListaDeclaracaoVariavelAmbiente() ]
+	{
+		if (resto == null) {
+			return new ListaDeclaracaoVariavelAmbiente(declaracao);
+		}
+		return new ListaDeclaracaoVariavelAmbiente(declaracao, resto);
+	}
+}
+
+DeclaracaoVariavelAmbiente PItemDeclaracaoAmbiente():
+{
+	DeclaracaoVariavelAmbiente d;
 }
 {
 	(
@@ -795,22 +818,6 @@ DeclaracaoLoadEnv PDeclaracaoLoadEnv():
 		return new DeclaracaoLoadEnv(caminho);
 	}
 }
-
-Declaracao PDeclaracaoAmbienteComposta():
-{
-	Declaracao d1;
-	Declaracao d2;
-}
-{
-	d1 = PDeclaracaoAmbiente()
-	(
-		<COMMA> d2 = PDeclaracaoAmbienteComposta()
-		{return new DeclaracaoComposta(d1, d2);}
-		|
-		{return d1;}
-	)
-}
-
 DeclaracaoComposta PDeclaracaoComposta():
 {
 	Declaracao d1;

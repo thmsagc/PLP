@@ -1,0 +1,2 @@
+// esperado: ERRO Variavel de ambiente $y nao declarada
+write($y)

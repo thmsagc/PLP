@@ -3,19 +3,25 @@ package li2.plp.imperative2.memory;
 import li2.plp.expressions1.util.Tipo;
 import li2.plp.expressions2.expression.Id;
 import li2.plp.imperative1.memory.AmbienteCompilacaoImperativa;
-import li2.plp.expressions2.memory.VariavelJaDeclaradaException;
-import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
 
 public interface AmbienteCompilacaoImperativa2
 		extends AmbienteCompilacaoImperativa {
 
-	public void incrementaAmbiente();
+	public void mapVariavelAmbiente(Id idArg, Tipo tipoId)
+			throws VariavelAmbienteJaDeclaradaException;
 
-	public void restauraAmbiente();
+	public Tipo getTipoVariavelAmbiente(Id idArg)
+			throws VariavelAmbienteNaoDeclaradaException;
 
-	public void mapAmbiente(Id idArg, Tipo tipoId)
-			throws VariavelJaDeclaradaException;
+	default void mapVariavelDotenv(Id idArg, Tipo tipoId)
+			throws VariavelAmbienteJaDeclaradaException {
+		mapVariavelAmbiente(idArg, tipoId);
+	}
 
-	public Tipo getTipoAmbiente(Id idArg)
-			throws VariavelNaoDeclaradaException;
+	default boolean ehDoEnv(Id idArg) {
+		return false;
+	}
+
+	default void removerDoEnv(Id idArg) {
+	}
 }

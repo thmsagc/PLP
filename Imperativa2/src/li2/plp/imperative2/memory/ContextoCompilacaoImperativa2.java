@@ -1,10 +1,10 @@
 package li2.plp.imperative2.memory;
 
+import java.util.HashMap;
+import java.util.HashSet;
+
 import li2.plp.expressions1.util.Tipo;
 import li2.plp.expressions2.expression.Id;
-import li2.plp.expressions2.memory.Contexto;
-import li2.plp.expressions2.memory.VariavelJaDeclaradaException;
-import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
 import li2.plp.imperative1.memory.ContextoCompilacaoImperativa;
 import li2.plp.imperative1.memory.ListaValor;
 
@@ -12,29 +12,53 @@ public class ContextoCompilacaoImperativa2
 		extends ContextoCompilacaoImperativa
 		implements AmbienteCompilacaoImperativa2 {
 
-	private Contexto<Tipo> contextoAmbiente;
+	/**
+	 * Tipos das variaveis de ambiente. Como elas so podem ser declaradas no
+	 * inicio do programa e o with nao muda o tipo, basta um unico nivel.
+	 */
+	private HashMap<Id, Tipo> tiposAmbiente;
+	private HashSet<Id> idsDoEnv;
 
 	public ContextoCompilacaoImperativa2(ListaValor entrada) {
 		super(entrada);
-		contextoAmbiente = new Contexto<Tipo>();
-		contextoAmbiente.incrementa();
+		tiposAmbiente = new HashMap<Id, Tipo>();
+		idsDoEnv = new HashSet<Id>();
 	}
 
-	public void incrementaAmbiente() {
-		contextoAmbiente.incrementa();
+	public void mapVariavelAmbiente(Id idArg, Tipo tipoId)
+			throws VariavelAmbienteJaDeclaradaException {
+		if (tiposAmbiente.containsKey(idArg)) {
+			throw new VariavelAmbienteJaDeclaradaException(idArg);
+		}
+		tiposAmbiente.put(idArg, tipoId);
 	}
 
-	public void restauraAmbiente() {
-		contextoAmbiente.restaura();
+	public Tipo getTipoVariavelAmbiente(Id idArg)
+			throws VariavelAmbienteNaoDeclaradaException {
+		Tipo tipo = tiposAmbiente.get(idArg);
+		if (tipo == null) {
+			throw new VariavelAmbienteNaoDeclaradaException(idArg);
+		}
+		return tipo;
 	}
 
-	public void mapAmbiente(Id idArg, Tipo tipoId)
-			throws VariavelJaDeclaradaException {
-		contextoAmbiente.map(idArg, tipoId);
+	@Override
+	public void mapVariavelDotenv(Id idArg, Tipo tipoId)
+			throws VariavelAmbienteJaDeclaradaException {
+		if (tiposAmbiente.containsKey(idArg)) {
+			throw new VariavelAmbienteJaDeclaradaException(idArg);
+		}
+		tiposAmbiente.put(idArg, tipoId);
+		idsDoEnv.add(idArg);
 	}
 
-	public Tipo getTipoAmbiente(Id idArg)
-			throws VariavelNaoDeclaradaException {
-		return contextoAmbiente.get(idArg);
+	@Override
+	public boolean ehDoEnv(Id idArg) {
+		return idsDoEnv.contains(idArg);
+	}
+
+	@Override
+	public void removerDoEnv(Id idArg) {
+		idsDoEnv.remove(idArg);
 	}
 }

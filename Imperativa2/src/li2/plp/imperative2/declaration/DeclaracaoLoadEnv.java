@@ -12,12 +12,6 @@ import li2.plp.expressions2.expression.Valor;
 import li2.plp.expressions2.expression.ValorString;
 import li2.plp.expressions2.memory.IdentificadorJaDeclaradoException;
 import li2.plp.expressions2.memory.IdentificadorNaoDeclaradoException;
-import li2.plp.expressions2.memory.VariavelJaDeclaradaException;
-import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
-import li2.plp.imperative1.declaration.Declaracao;
-import li2.plp.imperative1.memory.AmbienteCompilacaoImperativa;
-import li2.plp.imperative1.memory.AmbienteExecucaoImperativa;
-import li2.plp.imperative1.memory.EntradaVaziaException;
 import li2.plp.imperative2.dotenv.exception.DotenvException;
 import li2.plp.imperative2.dotenv.model.ArquivoDotenv;
 import li2.plp.imperative2.dotenv.parser.DotenvParser;
@@ -25,12 +19,15 @@ import li2.plp.imperative2.dotenv.parser.ParseException;
 import li2.plp.imperative2.dotenv.resolver.DotenvInferrer;
 import li2.plp.imperative2.memory.AmbienteCompilacaoImperativa2;
 import li2.plp.imperative2.memory.AmbienteExecucaoImperativa2;
+import li2.plp.imperative2.memory.VariavelAmbienteJaDeclaradaException;
+import li2.plp.imperative2.memory.VariavelAmbienteNaoDeclaradaException;
 
-public class DeclaracaoLoadEnv extends Declaracao {
+public class DeclaracaoLoadEnv extends DeclaracaoVariavelAmbiente {
 
 	private final Expressao caminho;
 
 	public DeclaracaoLoadEnv(Expressao caminho) {
+		super(null, null, caminho);
 		this.caminho = caminho;
 	}
 
@@ -39,15 +36,13 @@ public class DeclaracaoLoadEnv extends Declaracao {
 	}
 
 	@Override
-	public boolean checaTipo(AmbienteCompilacaoImperativa ambiente)
-			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
-		AmbienteCompilacaoImperativa2 amb = (AmbienteCompilacaoImperativa2) ambiente;
-
-		if (!caminho.checaTipo(amb)) {
+	public boolean checaTipo(AmbienteCompilacaoImperativa2 ambiente)
+			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException {
+		if (!caminho.checaTipo(ambiente)) {
 			return false;
 		}
 
-		if (!caminho.getTipo(amb).eIgual(TipoPrimitivo.STRING)) {
+		if (!caminho.getTipo(ambiente).eIgual(TipoPrimitivo.STRING)) {
 			return false;
 		}
 
@@ -69,16 +64,12 @@ public class DeclaracaoLoadEnv extends Declaracao {
 				Tipo tipo = entry.getValue();
 
 				try {
-					Tipo tipoExistente = amb.getTipoAmbiente(id);
+					Tipo tipoExistente = ambiente.getTipoVariavelAmbiente(id);
 					if (!tipoExistente.eIgual(tipo)) {
 						return false;
 					}
-				} catch (VariavelNaoDeclaradaException e) {
-					try {
-						amb.mapAmbiente(id, tipo);
-					} catch (VariavelJaDeclaradaException ex) {
-						return false;
-					}
+				} catch (VariavelAmbienteNaoDeclaradaException e) {
+					ambiente.mapVariavelDotenv(id, tipo);
 				}
 			}
 			return true;
@@ -92,11 +83,9 @@ public class DeclaracaoLoadEnv extends Declaracao {
 	}
 
 	@Override
-	public AmbienteExecucaoImperativa elabora(AmbienteExecucaoImperativa ambiente)
-			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
-		AmbienteExecucaoImperativa2 amb = (AmbienteExecucaoImperativa2) ambiente;
-
-		Valor valorCaminho = caminho.avaliar(amb);
+	public AmbienteExecucaoImperativa2 elabora(AmbienteExecucaoImperativa2 ambiente)
+			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException {
+		Valor valorCaminho = caminho.avaliar(ambiente);
 		String path = ((ValorString) valorCaminho).valor();
 
 		File file = new File(path);
@@ -108,13 +97,13 @@ public class DeclaracaoLoadEnv extends Declaracao {
 				Valor valor = entry.getValue();
 
 				try {
-					amb.getAmbiente(id);
-					amb.changeAmbiente(id, valor);
-				} catch (VariavelNaoDeclaradaException e) {
+					ambiente.getVariavelAmbiente(id);
+					ambiente.changeVariavelAmbiente(id, valor);
+				} catch (VariavelAmbienteNaoDeclaradaException e) {
 					try {
-						amb.mapAmbiente(id, valor);
-					} catch (VariavelJaDeclaradaException ex) {
-						// Ignora pois se getAmbiente falhou, a variavel nao estava mapeada
+						ambiente.mapVariavelAmbiente(id, valor);
+					} catch (VariavelAmbienteJaDeclaradaException ex) {
+						// Ignora
 					}
 				}
 			}
@@ -122,7 +111,7 @@ public class DeclaracaoLoadEnv extends Declaracao {
 			throw new RuntimeException("Erro ao carregar arquivo .env na execucao: " + e.getMessage(), e);
 		}
 
-		return amb;
+		return ambiente;
 	}
 
 	private String extrairCaminhoString(Expressao exp) {
@@ -131,5 +120,9 @@ public class DeclaracaoLoadEnv extends Declaracao {
 		}
 		return null;
 	}
-}
 
+	@Override
+	public String toString() {
+		return "loadenv " + caminho;
+	}
+}

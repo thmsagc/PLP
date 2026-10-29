@@ -19,9 +19,11 @@ public class ContextoExecucaoImperativa2 extends ContextoExecucaoImperativa
 	private Contexto<DefProcedimento> contextoProcedimentos;
 
 	/**
-	 * Contexto separado para as variáveis de ambiente.
+	 * Contexto separado para as variáveis de ambiente. Nao acompanha
+	 * incrementa()/restaura(), que seguem os blocos e as chamadas de
+	 * procedimento; so muda com o comando with.
 	 */
-	private ContextoAmbienteExecucao contextoAmbiente;
+	private ContextoVariaveisAmbiente contextoAmbiente;
 
 	/**
 	 * Construtor da classe.
@@ -29,7 +31,7 @@ public class ContextoExecucaoImperativa2 extends ContextoExecucaoImperativa
 	public ContextoExecucaoImperativa2(ListaValor entrada) {
 		super(entrada);
 		contextoProcedimentos = new Contexto<DefProcedimento>();
-		contextoAmbiente = new ContextoAmbienteExecucao();
+		contextoAmbiente = new ContextoVariaveisAmbiente();
 		contextoAmbiente.incrementa();
 	}
 
@@ -78,26 +80,34 @@ public class ContextoExecucaoImperativa2 extends ContextoExecucaoImperativa
 
 	}
 
-	public void incrementaAmbiente() {
+	public void incrementaEscopoAmbiente() {
 		this.contextoAmbiente.incrementa();
 	}
 
-	public void restauraAmbiente() {
+	public void restauraEscopoAmbiente() {
 		this.contextoAmbiente.restaura();
 	}
 
-	public void mapAmbiente(Id idArg, Valor valorId)
-			throws VariavelJaDeclaradaException {
-		this.contextoAmbiente.map(idArg, valorId);
+	public void mapVariavelAmbiente(Id idArg, Valor valorId)
+			throws VariavelAmbienteJaDeclaradaException {
+		try {
+			this.contextoAmbiente.map(idArg, valorId);
+		} catch (VariavelJaDeclaradaException e) {
+			throw new VariavelAmbienteJaDeclaradaException(idArg);
+		}
 	}
 
-	public Valor getAmbiente(Id idArg)
-			throws VariavelNaoDeclaradaException {
-		return this.contextoAmbiente.get(idArg);
+	public Valor getVariavelAmbiente(Id idArg)
+			throws VariavelAmbienteNaoDeclaradaException {
+		try {
+			return this.contextoAmbiente.get(idArg);
+		} catch (VariavelNaoDeclaradaException e) {
+			throw new VariavelAmbienteNaoDeclaradaException(idArg);
+		}
 	}
 
-	public void changeAmbiente(Id idArg, Valor valorId)
-			throws VariavelNaoDeclaradaException {
+	public void changeVariavelAmbiente(Id idArg, Valor valorId)
+			throws VariavelAmbienteNaoDeclaradaException {
 		this.contextoAmbiente.changeValor(idArg, valorId);
 	}
 }

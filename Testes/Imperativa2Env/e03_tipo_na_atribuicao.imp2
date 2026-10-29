@@ -1,0 +1,3 @@
+// esperado: ERRO Erro de tipo
+env x : int = 1;
+$x := true

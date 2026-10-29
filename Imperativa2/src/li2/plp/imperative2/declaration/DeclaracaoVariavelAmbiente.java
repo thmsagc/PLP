@@ -6,15 +6,17 @@ import li2.plp.expressions2.expression.Id;
 import li2.plp.expressions2.expression.Valor;
 import li2.plp.expressions2.memory.IdentificadorJaDeclaradoException;
 import li2.plp.expressions2.memory.IdentificadorNaoDeclaradoException;
-import li2.plp.expressions2.memory.VariavelNaoDeclaradaException;
-import li2.plp.imperative1.declaration.Declaracao;
-import li2.plp.imperative1.memory.AmbienteCompilacaoImperativa;
-import li2.plp.imperative1.memory.AmbienteExecucaoImperativa;
-import li2.plp.imperative1.memory.EntradaVaziaException;
 import li2.plp.imperative2.memory.AmbienteCompilacaoImperativa2;
 import li2.plp.imperative2.memory.AmbienteExecucaoImperativa2;
+import li2.plp.imperative2.memory.VariavelAmbienteJaDeclaradaException;
+import li2.plp.imperative2.memory.VariavelAmbienteNaoDeclaradaException;
 
-public class DeclaracaoVariavelAmbiente extends Declaracao {
+/**
+ * Declaracao <code>env id : Tipo = Expressao</code>. So aparece no inicio do
+ * programa (ver {@link li2.plp.imperative2.Programa}), por isso nao estende
+ * {@link li2.plp.imperative1.declaration.Declaracao}.
+ */
+public class DeclaracaoVariavelAmbiente {
 
 	private Id id;
 	private Tipo tipo;
@@ -26,42 +28,47 @@ public class DeclaracaoVariavelAmbiente extends Declaracao {
 		this.expressao = expressao;
 	}
 
-	@Override
-	public AmbienteExecucaoImperativa elabora(AmbienteExecucaoImperativa ambiente) 
-		throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
-		AmbienteExecucaoImperativa2 ambienteImperativa2 = (AmbienteExecucaoImperativa2) ambiente;
+	/**
+	 * Liga o id ao valor inicial no nivel da base da pilha de variaveis de
+	 * ambiente. Caso a variavel ja tenha sido carregada (por exemplo, via .env),
+	 * o valor vindo do .env prevalece.
+	 */
+	public AmbienteExecucaoImperativa2 elabora(
+			AmbienteExecucaoImperativa2 ambiente)
+			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException {
 		try {
-			// Se ja existe (vindo de loadenv ou flag), mantem o valor vindo de fora
-			ambienteImperativa2.getAmbiente(id);
-		} catch (VariavelNaoDeclaradaException e) {
-			Valor valorInicial = expressao.avaliar(ambienteImperativa2);
-			ambienteImperativa2.mapAmbiente(id, valorInicial);
+			// Se ja existe (vindo de loadenv ou flag CLI), mantem o valor vindo do .env!
+			ambiente.getVariavelAmbiente(id);
+		} catch (VariavelAmbienteNaoDeclaradaException e) {
+			Valor valorInicial = expressao.avaliar(ambiente);
+			ambiente.mapVariavelAmbiente(id, valorInicial);
 		}
-		return ambienteImperativa2;
+		return ambiente;
 	}
 
-	@Override
-	public boolean checaTipo(AmbienteCompilacaoImperativa ambiente) 
-			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException, EntradaVaziaException {
-		AmbienteCompilacaoImperativa2 ambienteImperativa2 = (AmbienteCompilacaoImperativa2) ambiente;
-
-		if (!expressao.checaTipo(ambienteImperativa2)) {
-			return false;
-		}
-
-		if (!tipo.eIgual(expressao.getTipo(ambienteImperativa2))) {
+	/**
+	 * O tipo do valor inicial deve ser igual ao tipo declarado.
+	 */
+	public boolean checaTipo(AmbienteCompilacaoImperativa2 ambiente)
+			throws IdentificadorJaDeclaradoException, IdentificadorNaoDeclaradoException {
+		if (!expressao.checaTipo(ambiente)
+				|| !tipo.eIgual(expressao.getTipo(ambiente))) {
 			return false;
 		}
 
 		try {
-			Tipo tipoExistente = ambienteImperativa2.getTipoAmbiente(id);
-			if (!tipoExistente.eIgual(tipo)) {
-				return false;
+			Tipo tipoExistente = ambiente.getTipoVariavelAmbiente(id);
+			if (ambiente.ehDoEnv(id)) {
+				if (!tipoExistente.eIgual(tipo)) {
+					return false;
+				}
+				ambiente.removerDoEnv(id);
+				return true;
 			}
-		} catch (VariavelNaoDeclaradaException e) {
-			ambienteImperativa2.mapAmbiente(id, tipo);
+			throw new VariavelAmbienteJaDeclaradaException(id);
+		} catch (VariavelAmbienteNaoDeclaradaException e) {
+			ambiente.mapVariavelAmbiente(id, tipo);
 		}
-
 		return true;
 	}
 
@@ -75,5 +82,10 @@ public class DeclaracaoVariavelAmbiente extends Declaracao {
 
 	public Expressao getExpressao() {
 		return expressao;
+	}
+
+	@Override
+	public String toString() {
+		return "env " + id + " : " + tipo.getNome() + " = " + expressao;
 	}
 }
