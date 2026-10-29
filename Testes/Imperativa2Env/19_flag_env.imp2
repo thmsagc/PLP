@@ -1,0 +1,4 @@
+// args: --env env/sobrescrita.env
+// esperado: 9999
+env PORTA : int = 8080;
+write($PORTA)

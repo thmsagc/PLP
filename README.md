@@ -196,13 +196,13 @@ Sete produções novas: `PListaDeclaracaoVariavelAmbiente()`, `PItemDeclaracaoAm
 
 E três pontos de encaixe em produções que já existiam:
 
-* `PPrograma()` ganhou a lista opcional `[ PListaDeclaracaoVariavelAmbiente() <SEMICOLON> ]` antes do comando. Como a lista começa por `<ENV>`, que não inicia nenhum comando, não é preciso `LOOKAHEAD`.
+* `PPrograma()` ganhou a lista opcional `[ LOOKAHEAD(<ENV> | <LOADENV>) PListaDeclaracaoVariavelAmbiente() <SEMICOLON> ]` antes do comando. A lista começa por `<ENV>` ou `<LOADENV>`, que não iniciam nenhum comando, e cada item é escolhido por `PItemDeclaracaoAmbiente()`.
 * `PComandoSimples()` ganhou as alternativas `PComandoWith()` e `PAtribuicaoAmbiente()`. As duas começam por token próprio, `<WITH>` e `<DOLLAR>`, então o `LOOKAHEAD(PComandoSimples() <SEMICOLON>)` que já existe em `PComando()` continua funcionando.
 * `PExpPrimaria()` ganhou a alternativa `PExpVariavelAmbiente()`. Também começa por `<DOLLAR>`, então as escolhas de `PExpBinaria()`, que fazem `LOOKAHEAD(PExpPrimaria() <PLUS>)` e parecidos, continuam válidas sem alteração.
 
 Tem um detalhe de análise léxica que vale registrar porque é uma armadilha real. Na gramática original, o caractere `$` fazia parte de `<#LETTER>`. Do jeito que estava, `$tentativas` seria lido como um único `IDENTIFIER` e o token `<DOLLAR>` nunca seria reconhecido. Por isso tiramos `"$"` de `<#LETTER>`, o que reserva o `$` para o uso novo. Nenhum dos programas de exemplo em `Testes` usava `$` dentro de identificador.
 
-A gramática do debugger da IDE web, `WebDebug/src/plp/debug/imperativa2/parser/Imperative2Debug.jj`, é uma cópia da gramática da linguagem e recebeu exatamente as mesmas mudanças.
+A gramática do debugger da IDE web, `WebDebug/src/plp/debug/imperativa2/parser/Imperative2Debug.jj`, é uma cópia da gramática da linguagem e recebeu as mesmas mudanças, exceto `loadenv`: no navegador não há sistema de arquivos para ler o `.env`.
 
 ## Semântica
 
@@ -212,6 +212,7 @@ A gramática do debugger da IDE web, `WebDebug/src/plp/debug/imperativa2/parser/
 * O `with` avalia a expressão, empilha uma ligação, executa o comando e desempilha, sempre, dentro de um `try/finally`.
 * A ligação criada pelo `with` vale para tudo que for executado dentro dele, inclusive para procedimentos chamados lá dentro e para procedimentos chamados por esses procedimentos. Essa é a diferença central em relação a uma variável comum.
 * A atribuição `$x := e` escreve na ligação mais interna que estiver ativa. Quando o `with` correspondente termina, a alteração é descartada.
+* `loadenv "arquivo"` e a flag `--env arquivo` colocam as variáveis do `.env` na base da pilha, antes de qualquer comando. Se o programa também declara a variável com `env`, o valor do arquivo prevalece sobre o valor padrão do código, e um `with` continua podendo sombrear o valor vindo do arquivo (teste `20`).
 
 ## Verificação de tipos
 
@@ -221,7 +222,8 @@ O verificador de tipos mantém os tipos das variáveis de ambiente em `ContextoC
 * `with` e atribuição sobre nome não declarado são erro de compilação;
 * declarar a mesma variável de ambiente duas vezes é erro de compilação;
 * o tipo do valor padrão, da expressão do `with` e da expressão da atribuição precisam ser iguais ao tipo declarado;
-* o tipo de `$x` em uma expressão é o tipo declarado, e as regras de tipo das expressões existentes continuam valendo sem alteração.
+* o tipo de `$x` em uma expressão é o tipo declarado, e as regras de tipo das expressões existentes continuam valendo sem alteração;
+* em `loadenv`, o caminho precisa ser uma string literal e o arquivo precisa existir e ser válido. O arquivo é lido já na verificação de tipos, e o tipo de cada chave é inferido do valor: inteiro vira `int`, `true`/`false` vira `boolean`, e o resto (ou qualquer valor entre aspas) vira `string`. Se a chave também foi declarada com `env`, os dois tipos precisam ser iguais (testes `e13` a `e15`).
 
 Como as declarações só existem no início do programa e o `with` não muda o tipo, o contexto de tipos tem um nível só. Um procedimento que lê `$tentativas` é verificado uma única vez, no ponto da declaração, independente de quem vai chamá-lo, e não é preciso analisar todas as cadeias de chamada possíveis.
 
@@ -246,11 +248,12 @@ Fora do módulo, só o necessário para as IDEs continuarem funcionando:
 
 * `AppUI/.../MultiInterpretador.java` e `WebAPI/.../PlpWebApi.java` passaram a fazer a verificação de tipos com `ContextoCompilacaoImperativa2`;
 * `WebDebug/.../imperativa2/AmbienteCompilacaoImperativaDebug.java` passou a implementar `AmbienteCompilacaoImperativa2`, e a gramática `Imperative2Debug.jj` recebeu as mesmas mudanças da gramática da linguagem;
-* `WebUI/src/config/languages.ts` ganhou `env` e `with` no realce de sintaxe da Imp2.
+* `WebUI/src/config/languages.ts` ganhou `env` e `with` no realce de sintaxe da Imp2;
+* `WebUI/src/lib/utils.ts`: no escopo de notebook, a IDE junta as células dentro de `{ ... }`. As declarações `env` do início de cada célula agora são levadas para antes do bloco, já que só são aceitas no início do programa.
 
 ## Decisões tomadas depois do feedback
 
-Na conversa com o professor surgiram cinco pontos. Registramos aqui o que decidimos e por quê.
+Na conversa com o professor surgiram seis pontos. Registramos aqui o que decidimos e por quê.
 
 **Atribuição.** O professor sugeriu manter a atribuição só se ela fosse comum nas linguagens que serviram de inspiração. Ela é: Common Lisp (`setf`) e Emacs Lisp (`setq`) alteram a ligação mais interna, e Clojure permite `set!` dentro de um `binding`. As linguagens mais recentes vão no sentido contrário: `Context` do Go e do React e `ScopedValue` do Java (que existe justamente para substituir o `ThreadLocal` sem o `set()`) só permitem criar uma ligação nova. Decidimos manter a atribuição, porque ela permite mostrar um ponto semântico interessante, o de que a alteração vale só para a ligação ativa e é descartada no fim do `with` (testes `09` e `10`).
 
@@ -262,11 +265,11 @@ Na conversa com o professor surgiram cinco pontos. Registramos aqui o que decidi
 
 **Nomes dos métodos.** Os métodos do ambiente se chamavam `mapAmbiente`, `getAmbiente` e parecidos, o que confundia com o próprio ambiente do interpretador (`AmbienteExecucao`). Renomeamos para `mapVariavelAmbiente`, `getVariavelAmbiente`, `getTipoVariavelAmbiente`, `incrementaEscopoAmbiente` etc.
 
-**Valores vindos de fora.** Ficaram para depois, como o professor sugeriu. O `Programa` já guarda as declarações `env` em um campo próprio, então a extensão vai ser substituir os valores padrão ali antes de elaborar.
+**Valores vindos de fora.** Como o professor sugeriu, primeiro fizemos o mecanismo e só depois a entrada externa. Ela entrou de duas formas: a declaração `loadenv "arquivo"`, no início do programa, e a flag `--env arquivo` na linha de comando. O arquivo `.env` tem um parser JavaCC próprio, e os tipos são inferidos antes da execução, então a garantia estática continua valendo (testes `17` a `20` e `e13` a `e15`).
 
 ## Testes
 
-Os programas de teste ficam em `Testes/Imperativa2Env`. Cada um traz a saída esperada em um comentário `// esperado:` na primeira linha (e a entrada do `read`, quando tem, em `// entrada:`). Os arquivos `01` a `16` são programas que devem rodar, e os `e01` a `e12` são programas que devem ser rejeitados, com a mensagem esperada.
+Os programas de teste ficam em `Testes/Imperativa2Env`. Cada um traz a saída esperada em um comentário `// esperado:` (a entrada do `read`, quando tem, vai em `// entrada:`, e argumentos extras como `--env`, em `// args:`). Os arquivos `01` a `20` são programas que devem rodar, e os `e01` a `e15` são programas que devem ser rejeitados, com a mensagem esperada. Os testes de `.env` usam os arquivos da pasta `env/`.
 
 Os arquivos `15` e `16` são a comparação lado a lado: o mesmo programa, com um nível de log que só o procedimento mais interno usa, escrito com parâmetros (só a LI2 original) e com variável de ambiente. Os dois têm a mesma saída. Na versão com parâmetros, `validar`, `calcularFrete` e `consultarTabela` recebem `nivel` só para repassar; na versão com `env`, nenhum deles sabe que o nível existe, e o modo detalhado vale só dentro do `with`. O script também roda o `Testes/TesteImperativa2.txt` original, para garantir que a LI2 continua funcionando.
 
@@ -283,7 +286,6 @@ São comportamentos da LI2 original, que não mudamos, mas que vale conhecer ao 
 
 * **Sombreamento de variável comum em procedimento.** O corpo do procedimento é checado no ambiente da declaração e executado no ambiente de quem chama. Em `{ var x = 1, proc p () { write(x) }; { var x = "a"; call p() } }` a verificação de tipos passa e a saída é `"a"`. Uma comparação lado a lado entre variável comum e variável de ambiente não deve usar sombreamento, porque as duas vão se comportar de forma parecida. Esse é justamente o comportamento dinâmico acidental comentado no início.
 * **Ordem dos procedimentos.** Um procedimento só pode chamar outro declarado antes dele, porque as declarações são checadas em ordem.
-* **Escopo de notebook da IDE web.** Com a opção de escopo de notebook ligada, a IDE junta as células dentro de `{ ... }`, e aí uma declaração `env` vira erro de sintaxe. Para usar variáveis de ambiente, deixe essa opção desligada ou coloque o programa em uma célula só.
 * **Rastreamento do parser.** A gramática original tem `DEBUG_PARSER = true`, então a linha de comando imprime o rastreamento do parser antes da saída. Mantivemos como no repositório da disciplina.
 
 ## Como executar

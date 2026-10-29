@@ -1,0 +1,3 @@
+// esperado: ERRO Erro de tipo
+loadenv "env/nao_existe.env";
+write(1)
