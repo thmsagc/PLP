@@ -27,7 +27,8 @@ order: 7
 ListaDeclaracaoVariavelAmbiente ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java" %}\
 {% include code-indent.html %} | DeclaracaoVariavelAmbiente "," ListaDeclaracaoVariavelAmbiente
 
-DeclaracaoVariavelAmbiente ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java" content='"env" Id ":" Tipo "=" Expressao' %}
+DeclaracaoVariavelAmbiente ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoVariavelAmbiente.java" content='"env" Id ":" Tipo "=" Expressao' %}\
+{% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/declaration/DeclaracaoLoadEnv.java" content='"loadenv" Expressao' %}
 
 Comando ::= {% include code-link.html path="Imperativa2/src/li2/plp/imperative1/command/Atribuicao.java" %}\
 {% include code-indent.html %} | {% include code-link.html path="Imperativa2/src/li2/plp/imperative2/command/AtribuicaoAmbiente.java" %}\
